@@ -58,9 +58,9 @@
                 <div>
                     <div class="flex items-center space-x-2">
                         <h1 class="text-sm font-bold tracking-wider text-slate-100 uppercase">A3Sim // Universal 3GPP Mobility Engine</h1>
-                        <span class="px-1.5 py-0.5 text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded">v3.8-PRO</span>
+                        <span class="px-1.5 py-0.5 text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded">v3.9-PRO</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 font-mono">Universal 3GPP LTE / 5G NR Handover & Retainability Simulator (Vendor-Agnostic)</p>
+                    <p class="text-[11px] text-slate-400 font-mono">Universal 3GPP LTE / 5G NR Handover & Ping-Pong Analytics</p>
                 </div>
             </div>
             
@@ -123,11 +123,11 @@
             </div>
 
             <div class="col-span-2 md:col-span-1 bg-oss-900 border border-oss-700/80 rounded-lg p-3.5 shadow-md relative overflow-hidden">
-                <div id="kpi_rlf_indicator" class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide">RLF Margin</p>
+                <div id="kpi_pp_indicator" class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Ping-Pong State</p>
                 <div class="flex items-baseline justify-between mt-1">
-                    <span id="kpi_rlf_margin" class="text-lg font-mono font-bold text-emerald-400">- dB</span>
-                    <span class="text-[10px] text-slate-400 font-mono">Headroom</span>
+                    <span id="kpi_pp_status" class="text-lg font-mono font-bold text-emerald-400">Stable</span>
+                    <span class="text-[10px] text-slate-400 font-mono">Risk</span>
                 </div>
             </div>
         </div>
@@ -137,7 +137,6 @@
         
         <!-- Parameter Controls Sidebar -->
         <div class="lg:col-span-1 space-y-5">
-            <!-- Scenario Selector Box -->
             <div class="bg-oss-900 border border-oss-700/80 rounded-lg p-5 shadow-xl">
                 <div class="flex items-center justify-between pb-3 border-b border-oss-700 mb-4">
                     <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono flex items-center space-x-2">
@@ -175,7 +174,6 @@
                 </div>
 
                 <div class="space-y-4 text-sm">
-                    <!-- A3 Offset -->
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <label for="a3_offset" class="text-xs font-medium text-slate-300">A3 Offset (CIO)</label>
@@ -183,10 +181,8 @@
                         </div>
                         <input type="range" id="a3_offset" min="-12" max="12" step="1" value="3" 
                             class="w-full h-1.5 bg-oss-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
-                        <p class="text-[10px] text-slate-500 mt-0.5">Offset for neighbor trigger condition.</p>
                     </div>
 
-                    <!-- Hysteresis -->
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <label for="hysteresis" class="text-xs font-medium text-slate-300">Hysteresis</label>
@@ -194,10 +190,8 @@
                         </div>
                         <input type="range" id="hysteresis" min="0" max="4" step="0.5" value="1.0" 
                             class="w-full h-1.5 bg-oss-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
-                        <p class="text-[10px] text-slate-500 mt-0.5">Anti-ping-pong safety margin.</p>
                     </div>
 
-                    <!-- Time-To-Trigger (ms) -->
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <label for="ttt_ms" class="text-xs font-medium text-slate-300">Time-To-Trigger (TTT)</label>
@@ -205,10 +199,8 @@
                         </div>
                         <input type="range" id="ttt_ms" min="0" max="15" step="1" value="5" 
                             class="w-full h-1.5 bg-oss-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
-                        <p class="text-[10px] text-slate-500 mt-0.5">Standard 3GPP evaluation timer.</p>
                     </div>
 
-                    <!-- RLF Threshold -->
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <label for="rlf_threshold" class="text-xs font-medium text-slate-300">RLF Drop Limit</label>
@@ -216,12 +208,10 @@
                         </div>
                         <input type="range" id="rlf_threshold" min="-120" max="-95" step="1" value="-108" 
                             class="w-full h-1.5 bg-oss-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
-                        <p class="text-[10px] text-slate-500 mt-0.5">Retainability failure threshold.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Handover Analytics Summary Card -->
             <div class="bg-oss-900 border border-oss-700/80 rounded-lg p-5 shadow-xl">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono mb-3 pb-2 border-b border-oss-700">Analytics Summary</h3>
                 <div class="space-y-2.5 text-xs">
@@ -234,8 +224,8 @@
                         <span id="summary_distance" class="font-mono text-slate-200">-</span>
                     </div>
                     <div class="flex justify-between py-1">
-                        <span class="text-slate-400">A3 Threshold at HO</span>
-                        <span id="summary_rsrp" class="font-mono text-slate-200">-</span>
+                        <span class="text-slate-400">Ping-Pong Count</span>
+                        <span id="summary_pingpong" class="font-mono text-slate-200">0 Events</span>
                     </div>
                 </div>
             </div>
@@ -248,15 +238,15 @@
                     <div>
                         <h3 class="text-sm font-semibold text-white font-mono flex items-center space-x-2">
                             <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-                            <span>RSRP Signal Trajectory & Handover Trigger Analysis</span>
+                            <span>RSRP Signal Trajectory & Handover Analytics</span>
                         </h3>
-                        <p id="trajectory_subtitle" class="text-xs text-slate-400">Simulated UE trajectory with multipath fading and 3GPP TTT persistence.</p>
+                        <p id="trajectory_subtitle" class="text-xs text-slate-400">Simulated UE trajectory with multipath fading and ping-pong monitoring.</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-3 text-xs font-mono">
                         <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-blue-500 inline-block"></span><span class="text-slate-300">Serving RSRP</span></span>
                         <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-amber-500 inline-block"></span><span class="text-slate-300">Neighbor RSRP</span></span>
                         <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-purple-500 inline-block"></span><span class="text-slate-300">TTT Window</span></span>
-                        <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-red-400 inline-block border-dashed"></span><span class="text-slate-300">A3 Thresh</span></span>
+                        <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-amber-400 inline-block"></span><span class="text-slate-300">Ping-Pong Alert</span></span>
                     </div>
                 </div>
                 <div class="relative flex-1 w-full min-h-[380px]">
@@ -281,45 +271,21 @@
                 </div>
             </div>
             <div id="audit-console" class="bg-oss-950 border border-oss-800 rounded p-3 h-32 overflow-y-auto font-mono text-xs space-y-1.5 text-slate-300">
-                <!-- Log items populated dynamically -->
             </div>
         </div>
     </div>
 
     <script>
-        // Standard 3GPP TTT Values in Milliseconds (TS 36.331 / TS 38.331)
         const TTT_VALUES_MS = [0, 40, 64, 80, 100, 128, 160, 256, 320, 480, 512, 640, 1024, 1280, 2560, 5120];
 
-        // Scenario Database supporting Macro and Micro site layouts with realistic scale and physics
         const scenarios = {
-            urban_macro: {
-                name: "Urban Macro (UMa - 500m ISD)",
-                desc: "Standard 3GPP Urban Macro cell layout with 500m inter-site distance and moderate path loss.",
-                servBase: -75, servSlope: 0.12, neighBase: -110, neighSlope: 0.18, fadeFreq: 35.0, fadeAmp: 0.8, noiseMul: 0.4, minMaxDist: [350, 500]
-            },
-            suburban_macro: {
-                name: "Suburban Macro (1km ISD)",
-                desc: "Wide-area suburban macro site deployment with extended coverage and gradual signal degradation.",
-                servBase: -70, servSlope: 0.05, neighBase: -115, neighSlope: 0.08, fadeFreq: 70.0, fadeAmp: 0.5, noiseMul: 0.25, minMaxDist: [600, 1000]
-            },
-            rural_macro: {
-                name: "Rural Macro (RMa - 1.5km+ ISD)",
-                desc: "Long-range rural macro link over flat terrain requiring high link stability and large TTT windows.",
-                servBase: -65, servSlope: 0.03, neighBase: -120, neighSlope: 0.045, fadeFreq: 110.0, fadeAmp: 0.3, noiseMul: 0.15, minMaxDist: [1100, 1500]
-            },
-            urban_micro: {
-                name: "Urban Micro / Small Cell",
-                desc: "Dense small-cell deployment with rapid signal drops and tight handover boundaries.",
-                servBase: -70, servSlope: 0.35, neighBase: -105, neighSlope: 0.50, fadeFreq: 12.0, fadeAmp: 1.0, noiseMul: 0.6, minMaxDist: [100, 200]
-            },
-            pingpong: {
-                name: "Microcell Cluster (Ping-Pong Risk)",
-                desc: "Overlapping micro sectors prone to frequent handovers and potential RLF during fast movement.",
-                servBase: -72, servSlope: 0.40, neighBase: -108, neighSlope: 0.40, fadeFreq: 8.0, fadeAmp: 1.2, noiseMul: 0.8, minMaxDist: [120, 250]
-            }
+            urban_macro: { name: "Urban Macro (UMa - 500m ISD)", desc: "Standard 3GPP Urban Macro cell layout.", servBase: -75, servSlope: 0.12, neighBase: -110, neighSlope: 0.18, fadeFreq: 35.0, fadeAmp: 0.8, noiseMul: 0.4, minMaxDist: [350, 500] },
+            suburban_macro: { name: "Suburban Macro (1km ISD)", desc: "Wide-area suburban macro site deployment.", servBase: -70, servSlope: 0.05, neighBase: -115, neighSlope: 0.08, fadeFreq: 70.0, fadeAmp: 0.5, noiseMul: 0.25, minMaxDist: [600, 1000] },
+            rural_macro: { name: "Rural Macro (RMa)", desc: "Long-range rural macro link over flat terrain.", servBase: -65, servSlope: 0.03, neighBase: -120, neighSlope: 0.045, fadeFreq: 110.0, fadeAmp: 0.3, noiseMul: 0.15, minMaxDist: [1100, 1500] },
+            urban_micro: { name: "Urban Micro / Small Cell", desc: "Dense small-cell deployment.", servBase: -70, servSlope: 0.35, neighBase: -105, neighSlope: 0.50, fadeFreq: 12.0, fadeAmp: 1.0, noiseMul: 0.6, minMaxDist: [100, 200] },
+            pingpong: { name: "Microcell Cluster (Ping-Pong Risk)", desc: "Overlapping sectors prone to frequent handovers.", servBase: -72, servSlope: 0.40, neighBase: -108, neighSlope: 0.40, fadeFreq: 8.0, fadeAmp: 1.4, noiseMul: 0.8, minMaxDist: [120, 250] }
         };
 
-        // DOM Elements
         const inputs = {
             a3_offset: document.getElementById('a3_offset'),
             hysteresis: document.getElementById('hysteresis'),
@@ -339,14 +305,14 @@
             neighbor: document.getElementById('kpi_neighbor'),
             margin: document.getElementById('kpi_margin'),
             ttt: document.getElementById('kpi_ttt'),
-            rlfMargin: document.getElementById('kpi_rlf_margin'),
-            rlfIndicator: document.getElementById('kpi_rlf_indicator')
+            ppStatus: document.getElementById('kpi_pp_status'),
+            ppIndicator: document.getElementById('kpi_pp_indicator')
         };
 
         const summary = {
             outcome: document.getElementById('summary_outcome'),
             distance: document.getElementById('summary_distance'),
-            rsrp: document.getElementById('summary_rsrp')
+            pingpong: document.getElementById('summary_pingpong')
         };
 
         const statusBadge = document.getElementById('status-badge');
@@ -374,74 +340,17 @@
         }
 
         const ctx = document.getElementById('rnoChart').getContext('2d');
-        
-        const servingGradient = ctx.createLinearGradient(0, 0, 0, 350);
-        servingGradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
-        servingGradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
-
-        const neighborGradient = ctx.createLinearGradient(0, 0, 0, 350);
-        neighborGradient.addColorStop(0, 'rgba(245, 158, 11, 0.3)');
-        neighborGradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
-
         const chart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: [],
                 datasets: [
-                    {
-                        label: 'Serving Cell RSRP',
-                        borderColor: '#3b82f6',
-                        backgroundColor: servingGradient,
-                        fill: true,
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        tension: 0.1,
-                        data: []
-                    },
-                    {
-                        label: 'Neighbor Cell RSRP',
-                        borderColor: '#f59e0b',
-                        backgroundColor: neighborGradient,
-                        fill: true,
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        tension: 0.1,
-                        data: []
-                    },
-                    {
-                        label: 'TTT Evaluation Window',
-                        borderColor: '#a855f7',
-                        backgroundColor: 'rgba(168, 85, 247, 0.2)',
-                        fill: true,
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        data: []
-                    },
-                    {
-                        label: 'A3 Trigger Threshold',
-                        borderColor: 'rgba(239, 68, 68, 0.7)',
-                        borderDash: [5, 5],
-                        borderWidth: 1.5,
-                        pointRadius: 0,
-                        data: []
-                    },
-                    {
-                        label: 'RLF Drop Limit',
-                        borderColor: 'rgba(168, 85, 247, 0.8)',
-                        borderDash: [2, 2],
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        data: []
-                    },
-                    {
-                        label: 'Event Trigger Marker',
-                        borderColor: '#10b981',
-                        backgroundColor: '#10b981',
-                        pointRadius: 7,
-                        pointStyle: 'circle',
-                        showLine: false,
-                        data: []
-                    }
+                    { label: 'Serving Cell RSRP', borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, tension: 0.1, data: [] },
+                    { label: 'Neighbor Cell RSRP', borderColor: '#f59e0b', borderWidth: 2, pointRadius: 0, tension: 0.1, data: [] },
+                    { label: 'TTT Window', borderColor: '#a855f7', backgroundColor: 'rgba(168, 85, 247, 0.15)', fill: true, borderWidth: 1, pointRadius: 0, data: [] },
+                    { label: 'A3 Thresh', borderColor: 'rgba(239, 68, 68, 0.7)', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, data: [] },
+                    { label: 'HO Event', borderColor: '#10b981', backgroundColor: '#10b981', pointRadius: 6, pointStyle: 'circle', showLine: false, data: [] },
+                    { label: 'Ping-Pong Event', borderColor: '#f59e0b', backgroundColor: '#f59e0b', pointRadius: 8, pointStyle: 'triangle', showLine: false, data: [] }
                 ]
             },
             options: {
@@ -450,31 +359,8 @@
                 animation: { duration: 150 },
                 interaction: { mode: 'index', intersect: false },
                 scales: {
-                    x: {
-                        title: { display: true, text: 'Distance from Serving Cell (meters)', color: '#94a3b8', font: { family: 'Inter', size: 11 } },
-                        grid: { color: 'rgba(31, 41, 55, 0.6)' },
-                        ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
-                    },
-                    y: {
-                        min: -130,
-                        max: -55,
-                        title: { display: true, text: 'RSRP (dBm)', color: '#94a3b8', font: { family: 'Inter', size: 11 } },
-                        grid: { color: 'rgba(31, 41, 55, 0.6)' },
-                        ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
-                    }
-                },
-                plugins: {
-                    legend: { labels: { color: '#cbd5e1', font: { family: 'Inter', size: 11 }, boxWidth: 12 } },
-                    tooltip: {
-                        backgroundColor: 'rgba(11, 15, 25, 0.95)',
-                        titleColor: '#f8fafc',
-                        bodyColor: '#cbd5e1',
-                        borderColor: '#374151',
-                        borderWidth: 1,
-                        padding: 10,
-                        boxPadding: 4,
-                        bodyFont: { family: 'JetBrains Mono' }
-                    }
+                    x: { title: { display: true, text: 'Distance (meters)', color: '#94a3b8' }, grid: { color: 'rgba(31, 41, 55, 0.6)' }, ticks: { color: '#94a3b8' } },
+                    y: { min: -130, max: -55, title: { display: true, text: 'RSRP (dBm)', color: '#94a3b8' }, grid: { color: 'rgba(31, 41, 55, 0.6)' }, ticks: { color: '#94a3b8' } }
                 }
             }
         });
@@ -482,8 +368,7 @@
         function runSimulation(forceNewDistance = false) {
             const a3_offset = parseFloat(inputs.a3_offset.value);
             const hysteresis = parseFloat(inputs.hysteresis.value);
-            const tttIndex = parseInt(inputs.ttt_ms.value);
-            const tttValueMs = TTT_VALUES_MS[tttIndex];
+            const tttValueMs = TTT_VALUES_MS[parseInt(inputs.ttt_ms.value)];
             const rlf_threshold = parseFloat(inputs.rlf_threshold.value);
 
             displays.a3_offset.textContent = `${a3_offset > 0 ? '+' : ''}${a3_offset.toFixed(1)} dB`;
@@ -491,33 +376,25 @@
             displays.ttt_ms.textContent = `${tttValueMs} ms`;
             displays.rlf_threshold.textContent = `${rlf_threshold.toFixed(1)} dBm`;
 
-            const currentScenarioKey = scenarioSelect.value;
-            const profile = scenarios[currentScenarioKey] || scenarios.urban_macro;
+            const profile = scenarios[scenarioSelect.value] || scenarios.urban_macro;
             scenarioDesc.textContent = profile.desc;
 
             if (forceNewDistance || !currentMaxDistance) {
                 const [minD, maxD] = profile.minMaxDist;
                 currentMaxDistance = Math.floor(Math.random() * (maxD - minD + 1)) + minD;
             }
-            trajectorySubtitle.textContent = `Simulated UE trajectory across ${currentMaxDistance} meters (${profile.name}) with multipath fading.`;
 
             const points = 250;
             const stepSize = currentMaxDistance / (points - 1);
-            const pointTimeStepMs = 10; 
-            const requiredSteps = tttValueMs === 0 ? 1 : Math.max(1, Math.round(tttValueMs / pointTimeStepMs));
+            const requiredSteps = tttValueMs === 0 ? 1 : Math.max(1, Math.round(tttValueMs / 10));
 
-            const distance = [];
-            const serving_rsrp = [];
-            const neighbor_rsrp = [];
-            const a3_threshold_arr = [];
-            const ttt_window_arr = new Array(points).fill(null);
-            const rlf_arr = [];
-            const marker_arr = new Array(points).fill(null);
+            const distance = [], serving_rsrp = [], neighbor_rsrp = [], a3_arr = [], ttt_arr = new Array(points).fill(null);
+            const ho_markers = new Array(points).fill(null);
+            const pp_markers = new Array(points).fill(null);
 
-            let consecutive_count = 0;
-            let trigger_index = null;
-            let dropped = false;
-            let drop_index = null;
+            let consecutive_count = 0, dropped = false, drop_index = null;
+            let handoverHistory = [];
+            let pingPongCount = 0;
 
             for (let i = 0; i < points; i++) {
                 let d = i * stepSize;
@@ -527,147 +404,88 @@
                 let fading = Math.sin(d / profile.fadeFreq) * profile.fadeAmp;
 
                 let serv = profile.servBase - (profile.servSlope * d) - fading + noise;
-                let neigh = profile.neighBase + (profile.neighSlope * d) + fading + noise;
+                // Add secondary wave fluctuations to simulate ping-pong bounce back
+                let neigh = profile.neighBase + (profile.neighSlope * d) + fading + noise + (scenarioSelect.value === 'pingpong' ? Math.sin(d * 0.1) * 3 : 0);
 
                 serving_rsrp.push(serv);
                 neighbor_rsrp.push(neigh);
-                const a3Thresh = serv + a3_offset + hysteresis;
-                a3_threshold_arr.push(a3Thresh);
-                rlf_arr.push(rlf_threshold);
+                let a3Thresh = serv + a3_offset + hysteresis;
+                a3_arr.push(a3Thresh);
 
-                if (!dropped && serv < rlf_threshold && trigger_index === null) {
+                if (!dropped && serv < rlf_threshold && handoverHistory.length === 0) {
                     dropped = true;
                     drop_index = i;
                 }
 
-                if (!dropped && trigger_index === null) {
-                    let a3_cond = (neigh - hysteresis) > (serv + a3_offset);
-                    if (a3_cond) {
-                        consecutive_count++;
-                        ttt_window_arr[i] = a3Thresh;
+                // Handover Evaluation Loop
+                let a3_cond = (neigh - hysteresis) > (serv + a3_offset);
+                if (a3_cond && !dropped) {
+                    consecutive_count++;
+                    ttt_arr[i] = a3Thresh;
 
-                        if (consecutive_count >= requiredSteps) {
-                            trigger_index = i - requiredSteps + 1;
+                    if (consecutive_count >= requiredSteps) {
+                        let trigIdx = i - requiredSteps + 1;
+                        
+                        // Check Ping-Pong against recent HOs
+                        let isPP = false;
+                        if (handoverHistory.length > 0) {
+                            let lastHO = handoverHistory[handoverHistory.length - 1];
+                            if (Math.abs(d - lastHO.dist) < 70) {
+                                pingPongCount++;
+                                isPP = true;
+                            }
                         }
-                    } else {
-                        // Leaky bucket persistence to handle minor multipath fading dips smoothly
-                        consecutive_count = Math.max(0, consecutive_count - 1);
-                        if (consecutive_count > 0) {
-                            ttt_window_arr[i] = a3Thresh;
+
+                        if (isPP) {
+                            pp_markers[trigIdx] = a3Thresh;
+                        } else {
+                            ho_markers[trigIdx] = a3Thresh;
                         }
+
+                        handoverHistory.push({ dist: d, index: trigIdx });
+                        consecutive_count = 0; // reset timer for next possible transition
                     }
+                } else {
+                    consecutive_count = Math.max(0, consecutive_count - 1);
+                    if (consecutive_count > 0) ttt_arr[i] = a3Thresh;
                 }
             }
 
-            lastSimulationData = { distance, serving_rsrp, neighbor_rsrp };
-
-            const mid = Math.floor(points / 2);
-            kpis.serving.textContent = `${serving_rsrp[mid].toFixed(1)} dBm`;
-            kpis.neighbor.textContent = `${neighbor_rsrp[mid].toFixed(1)} dBm`;
-            const currentMargin = (neighbor_rsrp[mid] - serving_rsrp[mid]).toFixed(1);
-            kpis.margin.textContent = `${currentMargin > 0 ? '+' : ''}${currentMargin} dB`;
+            // Update KPI and summaries
+            kpis.serving.textContent = `${serving_rsrp[125].toFixed(1)} dBm`;
+            kpis.neighbor.textContent = `${neighbor_rsrp[125].toFixed(1)} dBm`;
+            kpis.margin.textContent = `${(neighbor_rsrp[125] - serving_rsrp[125]).toFixed(1)} dB`;
             kpis.ttt.textContent = `${tttValueMs} ms`;
 
-            const rlfHeadroom = (serving_rsrp[mid] - rlf_threshold).toFixed(1);
-            kpis.rlfMargin.textContent = `${rlfHeadroom} dB`;
-            if (rlfHeadroom < 3) {
-                kpis.rlfIndicator.className = "absolute top-0 left-0 w-1 h-full bg-rose-500 animate-ping";
-                kpis.rlfMargin.className = "text-lg font-mono font-bold text-rose-400";
+            if (pingPongCount > 0) {
+                kpis.ppStatus.textContent = `${pingPongCount} Detected`;
+                kpis.ppStatus.className = "text-lg font-mono font-bold text-amber-400";
+                kpis.ppIndicator.className = "absolute top-0 left-0 w-1 h-full bg-amber-500 animate-pulse";
             } else {
-                kpis.rlfIndicator.className = "absolute top-0 left-0 w-1 h-full bg-emerald-500";
-                kpis.rlfMargin.className = "text-lg font-mono font-bold text-emerald-400";
+                kpis.ppStatus.textContent = "Stable";
+                kpis.ppStatus.className = "text-lg font-mono font-bold text-emerald-400";
+                kpis.ppIndicator.className = "absolute top-0 left-0 w-1 h-full bg-emerald-500";
             }
 
-            if (dropped) {
-                statusBadge.className = "px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 bg-rose-950/80 border-rose-800 text-rose-300";
-                statusDot.className = "w-2 h-2 rounded-full animate-pulse bg-rose-500";
-                statusText.textContent = "RLF CRITICAL (DROP)";
-                summary.outcome.textContent = "Radio Link Failure (Drop)";
-                summary.outcome.className = "font-mono font-medium text-rose-400";
-                summary.distance.textContent = `${distance[drop_index]} meters`;
-                summary.rsrp.textContent = `${serving_rsrp[drop_index].toFixed(1)} dBm (Serving)`;
-                marker_arr[drop_index] = serving_rsrp[drop_index];
-            } else if (trigger_index !== null) {
-                statusBadge.className = "px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 bg-emerald-950/80 border-emerald-800 text-emerald-300";
-                statusDot.className = "w-2 h-2 rounded-full animate-pulse bg-emerald-500";
-                statusText.textContent = "HANDOVER SUCCESS";
-                summary.outcome.textContent = "Event A3 Handover Triggered";
-                summary.outcome.className = "font-mono font-medium text-emerald-400";
-                summary.distance.textContent = `${distance[trigger_index]} meters`;
-                summary.rsrp.textContent = `${a3_threshold_arr[trigger_index].toFixed(1)} dBm (A3 Thresh)`;
-                marker_arr[trigger_index] = a3_threshold_arr[trigger_index];
-            } else {
-                statusBadge.className = "px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 bg-amber-950/80 border-amber-800 text-amber-300";
-                statusDot.className = "w-2 h-2 rounded-full animate-pulse bg-amber-500";
-                statusText.textContent = "HO WINDOW EXPIRED";
-                summary.outcome.textContent = "Late HO / Out of Sync";
-                summary.outcome.className = "font-mono font-medium text-amber-400";
-                summary.distance.textContent = `> ${currentMaxDistance}.0 meters`;
-                summary.rsrp.textContent = "N/A";
-            }
+            summary.outcome.textContent = pingPongCount > 0 ? "Ping-Pong Detected!" : "Normal Handovers";
+            summary.outcome.className = pingPongCount > 0 ? "font-mono font-medium text-amber-400" : "font-mono font-medium text-emerald-400";
+            summary.distance.textContent = handoverHistory.length > 0 ? `${handoverHistory[0].dist.toFixed(1)} m` : "None";
+            summary.pingpong.textContent = `${pingPongCount} Events`;
 
             chart.data.labels = distance;
             chart.data.datasets[0].data = serving_rsrp;
             chart.data.datasets[1].data = neighbor_rsrp;
-            chart.data.datasets[2].data = ttt_window_arr;
-            chart.data.datasets[3].data = a3_threshold_arr;
-            chart.data.datasets[4].data = rlf_arr;
-            chart.data.datasets[5].data = marker_arr;
+            chart.data.datasets[2].data = ttt_arr;
+            chart.data.datasets[3].data = a3_arr;
+            chart.data.datasets[4].data = ho_markers;
+            chart.data.datasets[5].data = pp_markers;
             chart.update();
         }
 
-        Object.values(inputs).forEach(input => {
-            input.addEventListener('input', () => runSimulation(false));
-        });
-
-        scenarioSelect.addEventListener('change', () => {
-            logAudit(`Loaded scenario profile: ${scenarioSelect.value.toUpperCase()}`, 'INFO');
-            runSimulation(true);
-        });
-
-        randomizeBtn.addEventListener('click', () => {
-            const keys = Object.keys(scenarios);
-            const randomKey = keys[Math.floor(Math.random() * keys.length)];
-            scenarioSelect.value = randomKey;
-            
-            inputs.a3_offset.value = (Math.floor(Math.random() * 8) - 1).toString();
-            inputs.hysteresis.value = (Math.floor(Math.random() * 5) * 0.5).toString();
-            inputs.ttt_ms.value = Math.floor(Math.random() * 12).toString();
-            
-            logAudit(`Randomized environment to profile '${randomKey}' with dynamic parameters.`, 'WARN');
-            runSimulation(true);
-        });
-
-        exportBtn.addEventListener('click', () => {
-            if (!lastSimulationData) return;
-            let csv = 'Distance(m),ServingRSRP(dBm),NeighborRSRP(dBm)\n';
-            for (let i = 0; i < lastSimulationData.distance.length; i++) {
-                csv += `${lastSimulationData.distance[i]},${lastSimulationData.serving_rsrp[i].toFixed(2)},${lastSimulationData.neighbor_rsrp[i].toFixed(2)}\n`;
-            }
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `A3Sim_Trajectory_${scenarioSelect.value}_${new Date().toISOString().slice(0,10)}.csv`;
-            a.click();
-            logAudit('Exported trajectory telemetry data to CSV format.', 'SUCCESS');
-        });
-
-        resetBtn.addEventListener('click', () => {
-            scenarioSelect.value = 'urban_macro';
-            inputs.a3_offset.value = 3;
-            inputs.hysteresis.value = 1.0;
-            inputs.ttt_ms.value = 5;
-            inputs.rlf_threshold.value = -108;
-            logAudit('Reset simulation parameters to factory defaults.', 'INFO');
-            runSimulation(true);
-        });
-
-        window.addEventListener('DOMContentLoaded', () => {
-            logAudit('A3Sim Engine v3.8-PRO successfully initialized.', 'SUCCESS');
-            logAudit('Loading standard 3GPP TS 36/38 macro and micro propagation profiles...', 'INFO');
-            runSimulation(true);
-        });
+        Object.values(inputs).forEach(input => input.addEventListener('input', () => runSimulation(false)));
+        scenarioSelect.addEventListener('change', () => runSimulation(true));
+        resetBtn.addEventListener('click', () => { scenarioSelect.value = 'urban_macro'; runSimulation(true); });
+        window.addEventListener('DOMContentLoaded', () => runSimulation(true));
     </script>
 </body>
 </html>
