@@ -38,6 +38,28 @@ Model different deployment topologies with profile-aware path-loss slopes, fadin
 
 ---
 
+## 📐 Mathematical & 3GPP Standards Formulation
+
+A3Sim implements standard 3GPP mobility evaluation criteria (TS 36.331 / TS 38.331) to model realistic radio link behavior:
+
+### 1. Event A3 Condition (Neighbor Becomes Offset Better Than Serving)
+A handover trigger condition is met when the neighbor cell's RSRP exceeds the serving cell's RSRP by the configured Offset plus Hysteresis over a sustained duration:
+$$RSRP_{neigh} - Hysteresis > RSRP_{serv} + CIO_{offset}$$
+
+### 2. A3 Threshold Curve
+The dynamic threshold line plotted on the chart is calculated at each distance step $d$:
+$$A3_{thresh}(d) = RSRP_{serv}(d) + CIO_{offset} + Hysteresis$$
+* *Note: Precision marker binding locks success (`HO Event`) and ping-pong (`PP Event`) markers directly to `A3_thresh[trigIdx]` at the precise trigger index.*
+
+### 3. Propagation & Signal Degradation
+Signal attenuation across distance $d$ follows profile-aware path-loss slopes combined with multi-path fading and pseudo-random noise:
+$$RSRP(d) = Base - (Slope \cdot d) - Fading(d) + Noise(d)$$
+
+### 4. Time-To-Trigger (TTT) Filtering
+To prevent premature handovers in fluctuating signal conditions, the A3 condition must remain continuously satisfied across consecutive distance steps corresponding to the selected TTT duration ($0\text{ ms}$ to $5120\text{ ms}$).
+
+---
+
 ## 🛠️ Tech Stack
 
 * **Frontend**: HTML5, Vanilla JavaScript (ES6+)
