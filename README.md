@@ -8,7 +8,7 @@ Built with single-file portability in mind, it requires no backend installation,
 
 ## 🚀 Live Demo
 Access the live simulator hosted on GitHub Pages:
-👉 **[https://<your-username>.github.io/A3Sim/](https://ethanfrancisco.github.io/A3Sim/)**
+👉 **[https://ethanfrancisco.github.io/A3Sim/](https://ethanfrancisco.github.io/A3Sim/)**
 
 ---
 
