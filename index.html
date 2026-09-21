@@ -153,13 +153,13 @@
                 <div class="space-y-3">
                     <label for="scenario_select" class="text-xs font-medium text-slate-300">Active Scenario Profile</label>
                     <select id="scenario_select" class="w-full bg-oss-800 border border-oss-600 rounded p-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500">
-                        <option value="urban">Urban Dense (Heavy Fading / Rapid Drop)</option>
-                        <option value="highway">High-Speed Corridor (Smooth Transition)</option>
-                        <option value="deep_indoor">Indoor Deep Penetration (Low RSRQ/RSRP)</option>
-                        <option value="rural">Rural LOS Plain (Extended Cell Reach)</option>
-                        <option value="pingpong">Microcell Cluster (High Ping-Pong Risk)</option>
+                        <option value="urban_macro">Urban Macro (UMa - 500m ISD)</option>
+                        <option value="suburban_macro">Suburban Macro (1km ISD)</option>
+                        <option value="rural_macro">Rural Macro (RMa - 1.5km+ ISD)</option>
+                        <option value="urban_micro">Urban Micro / Small Cell</option>
+                        <option value="pingpong">Microcell Cluster (Ping-Pong Risk)</option>
                     </select>
-                    <p id="scenario_desc" class="text-[11px] text-slate-400 italic mt-1">Simulating standard urban canyon propagation profile.</p>
+                    <p id="scenario_desc" class="text-[11px] text-slate-400 italic mt-1">Standard 3GPP Urban Macro cell layout with 500m inter-site distance.</p>
                 </div>
             </div>
 
@@ -214,7 +214,7 @@
                             <label for="rlf_threshold" class="text-xs font-medium text-slate-300">RLF Drop Limit</label>
                             <span id="val_rlf_threshold" class="text-xs font-mono bg-oss-800 text-cyan-300 px-1.5 py-0.5 rounded border border-oss-600">-108.0 dBm</span>
                         </div>
-                        <input type="range" id="rlf_threshold" min="-115" max="-95" step="1" value="-108" 
+                        <input type="range" id="rlf_threshold" min="-120" max="-95" step="1" value="-108" 
                             class="w-full h-1.5 bg-oss-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
                         <p class="text-[10px] text-slate-500 mt-0.5">Retainability failure threshold.</p>
                     </div>
@@ -250,7 +250,7 @@
                             <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
                             <span>RSRP Signal Trajectory & Handover Trigger Analysis</span>
                         </h3>
-                        <p class="text-xs text-slate-400">Simulated UE trajectory across 100 meters with multipath fading and 3GPP TTT persistence.</p>
+                        <p id="trajectory_subtitle" class="text-xs text-slate-400">Simulated UE trajectory with multipath fading and 3GPP TTT persistence.</p>
                     </div>
                     <div class="flex items-center space-x-4 text-xs font-mono">
                         <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-blue-500 inline-block"></span><span class="text-slate-300">Serving RSRP</span></span>
@@ -289,32 +289,32 @@
         // Standard 3GPP TTT Values in Milliseconds (TS 36.331 / TS 38.331)
         const TTT_VALUES_MS = [0, 40, 64, 80, 100, 128, 160, 256, 320, 480, 512, 640, 1024, 1280, 2560, 5120];
 
-        // Scenario Database with varied propagation physics profiles
+        // Scenario Database supporting Macro and Micro site layouts with realistic scale and physics
         const scenarios = {
-            urban: {
-                name: "Urban Dense",
-                desc: "Severe urban multi-path fading with rapid signal decay and high structure interference.",
-                servBase: -72, servSlope: 0.30, neighBase: -110, neighSlope: 0.55, fadeFreq: 6.0, fadeAmp: 1.0, noiseMul: 0.3
+            urban_macro: {
+                name: "Urban Macro (UMa - 500m ISD)",
+                desc: "Standard 3GPP Urban Macro cell layout with 500m inter-site distance and moderate path loss.",
+                servBase: -75, servSlope: 0.12, neighBase: -115, neighSlope: 0.18, fadeFreq: 35.0, fadeAmp: 1.2, noiseMul: 0.4, minMaxDist: [350, 500]
             },
-            highway: {
-                name: "High-Speed Corridor",
-                desc: "Open highway corridor featuring smooth path loss curves and stable line-of-sight tracking.",
-                servBase: -78, servSlope: 0.32, neighBase: -110, neighSlope: 0.35, fadeFreq: 8.0, fadeAmp: 0.8, noiseMul: 0.2
+            suburban_macro: {
+                name: "Suburban Macro (1km ISD)",
+                desc: "Wide-area suburban macro site deployment with extended coverage and gradual signal degradation.",
+                servBase: -70, servSlope: 0.05, neighBase: -120, neighSlope: 0.08, fadeFreq: 70.0, fadeAmp: 0.8, noiseMul: 0.25, minMaxDist: [600, 1000]
             },
-            deep_indoor: {
-                name: "Indoor Deep Penetration",
-                desc: "Deep indoor building profile with severe initial attenuation and compressed handover window headroom.",
-                servBase: -85, servSlope: 0.50, neighBase: -120, neighSlope: 0.42, fadeFreq: 3.0, fadeAmp: 2.2, noiseMul: 0.8
+            rural_macro: {
+                name: "Rural Macro (RMa - 1.5km+ ISD)",
+                desc: "Long-range rural macro link over flat terrain requiring high link stability and large TTT windows.",
+                servBase: -65, servSlope: 0.03, neighBase: -125, neighSlope: 0.045, fadeFreq: 110.0, fadeAmp: 0.5, noiseMul: 0.15, minMaxDist: [1100, 1500]
             },
-            rural: {
-                name: "Rural LOS Plain",
-                desc: "Extended cell reach over open flat terrain with very gradual signal degradation.",
-                servBase: -68, servSlope: 0.22, neighBase: -122, neighSlope: 0.30, fadeFreq: 12.0, fadeAmp: 0.5, noiseMul: 0.15
+            urban_micro: {
+                name: "Urban Micro / Small Cell",
+                desc: "Dense small-cell deployment with rapid signal drops and tight handover boundaries.",
+                servBase: -70, servSlope: 0.35, neighBase: -108, neighSlope: 0.50, fadeFreq: 12.0, fadeAmp: 1.5, noiseMul: 0.6, minMaxDist: [100, 200]
             },
             pingpong: {
-                name: "Microcell Cluster",
-                desc: "Dense microcell layout with overlapping coverage sectors and high ping-pong handover vulnerability.",
-                servBase: -75, servSlope: 0.40, neighBase: -112, neighSlope: 0.40, fadeFreq: 2.5, fadeAmp: 2.5, noiseMul: 0.9
+                name: "Microcell Cluster (Ping-Pong Risk)",
+                desc: "Overlapping micro sectors prone to frequent handovers and potential RLF during fast movement.",
+                servBase: -72, servSlope: 0.40, neighBase: -110, neighSlope: 0.40, fadeFreq: 8.0, fadeAmp: 2.0, noiseMul: 0.8, minMaxDist: [120, 250]
             }
         };
 
@@ -357,8 +357,10 @@
         const scenarioSelect = document.getElementById('scenario_select');
         const scenarioDesc = document.getElementById('scenario_desc');
         const randomizeBtn = document.getElementById('randomize-scenario-btn');
+        const trajectorySubtitle = document.getElementById('trajectory_subtitle');
 
         let lastSimulationData = null;
+        let currentMaxDistance = 500; // Track active random total distance
 
         function logAudit(message, type = 'INFO') {
             const timestamp = new Date().toISOString().split('T')[1].slice(0, 8);
@@ -445,8 +447,8 @@
                         ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
                     },
                     y: {
-                        min: -125,
-                        max: -60,
+                        min: -130,
+                        max: -55,
                         title: { display: true, text: 'RSRP (dBm)', color: '#94a3b8', font: { family: 'Inter', size: 11 } },
                         grid: { color: 'rgba(31, 41, 55, 0.6)' },
                         ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
@@ -468,7 +470,7 @@
             }
         });
 
-        function runSimulation() {
+        function runSimulation(forceNewDistance = false) {
             const a3_offset = parseFloat(inputs.a3_offset.value);
             const hysteresis = parseFloat(inputs.hysteresis.value);
             const tttIndex = parseInt(inputs.ttt_ms.value);
@@ -481,13 +483,22 @@
             displays.rlf_threshold.textContent = `${rlf_threshold.toFixed(1)} dBm`;
 
             const currentScenarioKey = scenarioSelect.value;
-            const profile = scenarios[currentScenarioKey] || scenarios.urban;
+            const profile = scenarios[currentScenarioKey] || scenarios.urban_macro;
             scenarioDesc.textContent = profile.desc;
 
-            // Map TTT ms to required persistence points (~40ms per spatial point step)
-            const requiredSteps = tttValueMs === 0 ? 1 : Math.max(1, Math.round(tttValueMs / 40));
+            // Randomize distance bounds per profile if requested or first load
+            if (forceNewDistance || !currentMaxDistance) {
+                const [minD, maxD] = profile.minMaxDist;
+                currentMaxDistance = Math.floor(Math.random() * (maxD - minD + 1)) + minD;
+            }
+            trajectorySubtitle.textContent = `Simulated UE trajectory across ${currentMaxDistance} meters (${profile.name}) with multipath fading.`;
 
+            // Map TTT ms to required persistence points based on step resolution
             const points = 250;
+            const stepSize = currentMaxDistance / (points - 1);
+            const pointTimeStepMs = 40; 
+            const requiredSteps = tttValueMs === 0 ? 1 : Math.max(1, Math.round(tttValueMs / pointTimeStepMs));
+
             const distance = [];
             const serving_rsrp = [];
             const neighbor_rsrp = [];
@@ -501,7 +512,7 @@
             let drop_index = null;
 
             for (let i = 0; i < points; i++) {
-                let d = (i / (points - 1)) * 100;
+                let d = i * stepSize;
                 distance.push(d.toFixed(1));
 
                 let noise = Math.sin(d * 12.9898) * profile.noiseMul;
@@ -576,7 +587,7 @@
                 statusText.textContent = "HO WINDOW EXPIRED";
                 summary.outcome.textContent = "Late HO / Out of Sync";
                 summary.outcome.className = "font-mono font-medium text-amber-400";
-                summary.distance.textContent = "> 100.0 meters";
+                summary.distance.textContent = `> ${currentMaxDistance}.0 meters`;
                 summary.rsrp.textContent = "N/A";
             }
 
@@ -590,12 +601,12 @@
         }
 
         Object.values(inputs).forEach(input => {
-            input.addEventListener('input', runSimulation);
+            input.addEventListener('input', () => runSimulation(false));
         });
 
         scenarioSelect.addEventListener('change', () => {
             logAudit(`Loaded scenario profile: ${scenarioSelect.value.toUpperCase()}`, 'INFO');
-            runSimulation();
+            runSimulation(true); // Generate new random distance range for the new scenario
         });
 
         randomizeBtn.addEventListener('click', () => {
@@ -603,13 +614,13 @@
             const randomKey = keys[Math.floor(Math.random() * keys.length)];
             scenarioSelect.value = randomKey;
             
-            // Randomize parameters slightly
+            // Randomize radio parameters slightly
             inputs.a3_offset.value = (Math.floor(Math.random() * 8) - 1).toString();
             inputs.hysteresis.value = (Math.floor(Math.random() * 5) * 0.5).toString();
             inputs.ttt_ms.value = Math.floor(Math.random() * 12).toString();
             
             logAudit(`Randomized environment to profile '${randomKey}' with dynamic parameters.`, 'WARN');
-            runSimulation();
+            runSimulation(true);
         });
 
         exportBtn.addEventListener('click', () => {
@@ -628,20 +639,20 @@
         });
 
         resetBtn.addEventListener('click', () => {
-            scenarioSelect.value = 'urban';
+            scenarioSelect.value = 'urban_macro';
             inputs.a3_offset.value = 3;
             inputs.hysteresis.value = 1.0;
             inputs.ttt_ms.value = 5; // 128ms
             inputs.rlf_threshold.value = -108;
             logAudit('Reset simulation parameters to factory defaults.', 'INFO');
-            runSimulation();
+            runSimulation(true);
         });
 
         // Initial Boot
         window.addEventListener('DOMContentLoaded', () => {
             logAudit('A3Sim Engine v3.6-PRO successfully initialized.', 'SUCCESS');
-            logAudit('Loading standard 3GPP TS 36/38 propagation profiles...', 'INFO');
-            runSimulation();
+            logAudit('Loading standard 3GPP TS 36/38 macro and micro propagation profiles...', 'INFO');
+            runSimulation(true);
         });
     </script>
 </body>
