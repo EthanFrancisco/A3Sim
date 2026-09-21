@@ -58,7 +58,7 @@
                 <div>
                     <div class="flex items-center space-x-2">
                         <h1 class="text-sm font-bold tracking-wider text-slate-100 uppercase">A3Sim // Universal 3GPP Mobility Engine</h1>
-                        <span class="px-1.5 py-0.5 text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded">v3.7-PRO</span>
+                        <span class="px-1.5 py-0.5 text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded">v3.8-PRO</span>
                     </div>
                     <p class="text-[11px] text-slate-400 font-mono">Universal 3GPP LTE / 5G NR Handover & Retainability Simulator (Vendor-Agnostic)</p>
                 </div>
@@ -252,10 +252,11 @@
                         </h3>
                         <p id="trajectory_subtitle" class="text-xs text-slate-400">Simulated UE trajectory with multipath fading and 3GPP TTT persistence.</p>
                     </div>
-                    <div class="flex items-center space-x-4 text-xs font-mono">
+                    <div class="flex flex-wrap items-center gap-3 text-xs font-mono">
                         <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-blue-500 inline-block"></span><span class="text-slate-300">Serving RSRP</span></span>
                         <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-amber-500 inline-block"></span><span class="text-slate-300">Neighbor RSRP</span></span>
-                        <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-red-400 inline-block border-dashed"></span><span class="text-slate-300">A3 Threshold</span></span>
+                        <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-purple-500 inline-block"></span><span class="text-slate-300">TTT Window</span></span>
+                        <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-red-400 inline-block border-dashed"></span><span class="text-slate-300">A3 Thresh</span></span>
                     </div>
                 </div>
                 <div class="relative flex-1 w-full min-h-[380px]">
@@ -408,6 +409,15 @@
                         data: []
                     },
                     {
+                        label: 'TTT Evaluation Window',
+                        borderColor: '#a855f7',
+                        backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                        fill: true,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        data: []
+                    },
+                    {
                         label: 'A3 Trigger Threshold',
                         borderColor: 'rgba(239, 68, 68, 0.7)',
                         borderDash: [5, 5],
@@ -500,6 +510,7 @@
             const serving_rsrp = [];
             const neighbor_rsrp = [];
             const a3_threshold_arr = [];
+            const ttt_window_arr = new Array(points).fill(null);
             const rlf_arr = [];
             const marker_arr = new Array(points).fill(null);
 
@@ -535,6 +546,10 @@
                         consecutive_count++;
                         if (consecutive_count >= requiredSteps) {
                             trigger_index = i - requiredSteps + 1;
+                            // Populate the active TTT window span leading up to the trigger
+                            for (let j = trigger_index; j <= i; j++) {
+                                ttt_window_arr[j] = a3_threshold_arr[j];
+                            }
                         }
                     } else {
                         consecutive_count = Math.max(0, consecutive_count - 1);
@@ -593,9 +608,10 @@
             chart.data.labels = distance;
             chart.data.datasets[0].data = serving_rsrp;
             chart.data.datasets[1].data = neighbor_rsrp;
-            chart.data.datasets[2].data = a3_threshold_arr;
-            chart.data.datasets[3].data = rlf_arr;
-            chart.data.datasets[4].data = marker_arr;
+            chart.data.datasets[2].data = ttt_window_arr;
+            chart.data.datasets[3].data = a3_threshold_arr;
+            chart.data.datasets[4].data = rlf_arr;
+            chart.data.datasets[5].data = marker_arr;
             chart.update();
         }
 
@@ -647,7 +663,7 @@
         });
 
         window.addEventListener('DOMContentLoaded', () => {
-            logAudit('A3Sim Engine v3.7-PRO successfully initialized.', 'SUCCESS');
+            logAudit('A3Sim Engine v3.8-PRO successfully initialized.', 'SUCCESS');
             logAudit('Loading standard 3GPP TS 36/38 macro and micro propagation profiles...', 'INFO');
             runSimulation(true);
         });
