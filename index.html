@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A3Sim // Enterprise RNO Mobility & Retainability Suite</title>
+    <title>A3Sim // Universal 3GPP LTE / 5G NR Mobility & Retainability Suite</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -32,7 +32,7 @@
             }
         }
     </script>
-    <!-- Chart.js & Chartjs Plugin Annotation CDN -->
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -58,10 +58,10 @@
                 </div>
                 <div>
                     <div class="flex items-center space-x-2">
-                        <h1 class="text-sm font-bold tracking-wider text-slate-100 uppercase">A3Sim // OSS-NMS Mobility Engine</h1>
-                        <span class="px-1.5 py-0.5 text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded">v3.4-PRO</span>
+                        <h1 class="text-sm font-bold tracking-wider text-slate-100 uppercase">A3Sim // Universal 3GPP Mobility Engine</h1>
+                        <span class="px-1.5 py-0.5 text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded">v3.5-PRO</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 font-mono">3GPP TS 36.331 Event A3 / RLF Retainability Analyzer</p>
+                    <p class="text-[11px] text-slate-400 font-mono">Universal 3GPP LTE / 5G NR Handover & Retainability Simulator (Vendor-Agnostic)</p>
                 </div>
             </div>
             
@@ -146,7 +146,7 @@
                         </svg>
                         <span>Radio Parameters</span>
                     </h2>
-                    <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-900">ENM Live</span>
+                    <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-900">3GPP Standard</span>
                 </div>
 
                 <div class="space-y-4 text-sm">
@@ -247,7 +247,7 @@
                     <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">OSS Event Audit Trail Console</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">3GPP Audit Trail Console</h3>
                 </div>
                 <div class="flex items-center space-x-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -550,7 +550,7 @@
             inputs.ttt_steps.value = 10;
             inputs.rlf_threshold.value = -108.0;
             runSimulation();
-            logAudit('Parameters reset to default Ericsson/Nokia OSS baselines.', 'WARN');
+            logAudit('Parameters reset to default 3GPP air-interface baselines.', 'WARN');
         });
 
         exportBtn.addEventListener('click', () => {
@@ -571,8 +571,8 @@
 
         window.onload = function() {
             runSimulation();
-            logAudit('A3Sim Enterprise Mobility Engine initialized successfully.', 'SUCCESS');
-            logAudit('Loaded 3GPP TS 36.331 mobility models and OSS telemetry hooks.', 'INFO');
+            logAudit('A3Sim Universal 3GPP Mobility Engine initialized successfully.', 'SUCCESS');
+            logAudit('Loaded 3GPP TS 36.331 / TS 38.331 air-interface compliance models.', 'INFO');
         };
     </script>
 </body>
