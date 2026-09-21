@@ -1,326 +1,658 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A3Sim - Universal 3GPP LTE / 5G NR Handover & Retainability Simulator</title>
+    <title>A3Sim // Universal 3GPP LTE / 5G NR Mobility & Retainability Suite</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        oss: {
+                            950: '#07090e',
+                            900: '#0b0f19',
+                            800: '#111827',
+                            700: '#1f2937',
+                            600: '#374151',
+                            accent: '#0ea5e9',
+                            success: '#10b981',
+                            warning: '#f59e0b',
+                            danger: '#ef4444'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        /* Custom scrollbar for OSS audit console */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+<body class="bg-oss-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-black">
 
-    <!-- Header / Navbar -->
-    <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/30">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+    <header class="border-b border-oss-700 bg-oss-900/90 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="h-9 w-9 rounded bg-gradient-to-br from-cyan-600 to-blue-900 flex items-center justify-center border border-cyan-500/30 shadow-lg shadow-cyan-500/10">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">A3Sim</h1>
-                    <p class="text-xs text-slate-400">3GPP TS 36.331 / TS 38.331 Event A3 Handover Engine</p>
+                    <div class="flex items-center space-x-2">
+                        <h1 class="text-sm font-bold tracking-wider text-slate-100 uppercase">A3Sim // Universal 3GPP Mobility Engine</h1>
+                        <span class="px-1.5 py-0.5 text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded">v3.5-PRO</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 font-mono">Universal 3GPP LTE / 5G NR Handover & Retainability Simulator (Vendor-Agnostic)</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="randomizeScenario()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2 cursor-pointer">
-                    <span>🎲</span> Randomize Scenario
-                </button>
-                <button onclick="runSimulation()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2 cursor-pointer">
-                    <span>▶</span> Run Simulation
-                </button>
+            
+            <div class="flex items-center space-x-4">
+                <div id="status-badge" class="px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 shadow-inner">
+                    <span id="status-dot" class="w-2 h-2 rounded-full animate-pulse"></span>
+                    <span id="status-text">INITIALIZING...</span>
+                </div>
+                <div class="hidden sm:flex items-center space-x-2 border-l border-oss-700 pl-4">
+                    <button id="export-csv-btn" class="px-3 py-1.5 bg-oss-800 hover:bg-oss-700 text-slate-200 border border-oss-600 rounded text-xs font-mono flex items-center space-x-1.5 transition-colors shadow-sm">
+                        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        <span>Export CSV</span>
+                    </button>
+                    <button id="reset-btn" class="px-3 py-1.5 bg-oss-800 hover:bg-oss-700 text-slate-300 border border-oss-600 rounded text-xs font-mono transition-colors shadow-sm">
+                        Reset Defaults
+                    </button>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Grid -->
-    <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow w-full">
-        
-        <!-- Left Column: Parameters Control Deck -->
-        <section class="lg:col-span-1 bg-slate-900/80 border border-slate-800/80 rounded-2xl p-5 flex flex-col gap-5 backdrop-blur">
-            <h2 class="text-sm font-semibold tracking-wider text-slate-400 uppercase">Radio Parameters</h2>
-
-            <!-- Serving RSRP -->
-            <div class="flex flex-col gap-1.5">
-                <div class="flex justify-between text-sm">
-                    <label for="servingRsrp" class="text-slate-300 font-medium">Serving RSRP</label>
-                    <span id="servingRsrpVal" class="text-indigo-400 font-mono">-85 dBm</span>
+    <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div class="bg-oss-900 border border-oss-700/80 rounded-lg p-3.5 shadow-md relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Serving RSRP</p>
+                <div class="flex items-baseline justify-between mt-1">
+                    <span id="kpi_serving" class="text-lg font-mono font-bold text-slate-100">- dBm</span>
+                    <span class="text-[10px] text-blue-400 font-mono">PCell</span>
                 </div>
-                <input type="range" id="servingRsrp" min="-120" max="-60" value="-85" step="1" 
-                    oninput="updateLabels(); runSimulation();"
-                    class="accent-indigo-500 cursor-pointer">
             </div>
-
-            <!-- Neighbor RSRP -->
-            <div class="flex flex-col gap-1.5">
-                <div class="flex justify-between text-sm">
-                    <label for="neighborRsrp" class="text-slate-300 font-medium">Neighbor RSRP</label>
-                    <span id="neighborRsrpVal" class="text-cyan-400 font-mono">-75 dBm</span>
-                </div>
-                <input type="range" id="neighborRsrp" min="-120" max="-60" value="-75" step="1" 
-                    oninput="updateLabels(); runSimulation();"
-                    class="accent-cyan-500 cursor-pointer">
-            </div>
-
-            <!-- A3 Offset -->
-            <div class="flex flex-col gap-1.5">
-                <div class="flex justify-between text-sm">
-                    <label for="a3Offset" class="text-slate-300 font-medium">A3 Offset (Off)</label>
-                    <span id="a3OffsetVal" class="text-slate-200 font-mono">3.0 dB</span>
-                </div>
-                <input type="range" id="a3Offset" min="0" max="10" value="3.0" step="0.5" 
-                    oninput="updateLabels(); runSimulation();"
-                    class="accent-indigo-500 cursor-pointer">
-            </div>
-
-            <!-- Hysteresis -->
-            <div class="flex flex-col gap-1.5">
-                <div class="flex justify-between text-sm">
-                    <label for="hysteresis" class="text-slate-300 font-medium">Hysteresis (Hys)</label>
-                    <span id="hysteresisVal" class="text-slate-200 font-mono">1.0 dB</span>
-                </div>
-                <input type="range" id="hysteresis" min="0" max="5" value="1.0" step="0.5" 
-                    oninput="updateLabels(); runSimulation();"
-                    class="accent-indigo-500 cursor-pointer">
-            </div>
-
-            <!-- Time-To-Trigger -->
-            <div class="flex flex-col gap-1.5">
-                <div class="flex justify-between text-sm">
-                    <label for="ttt" class="text-slate-300 font-medium">Time-To-Trigger (TTT)</label>
-                    <span id="tttVal" class="text-slate-200 font-mono">160 ms</span>
-                </div>
-                <select id="ttt" onchange="runSimulation()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
-                    <option value="40">40 ms</option>
-                    <option value="80">80 ms</option>
-                    <option value="160" selected>160 ms</option>
-                    <option value="320">320 ms</option>
-                    <option value="640">640 ms</option>
-                </select>
-            </div>
-        </section>
-
-        <!-- Right Column: Telemetry, Graph & Logs -->
-        <section class="lg:col-span-3 flex flex-col gap-6">
             
-            <!-- KPI Cards Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 backdrop-blur flex flex-col justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Trigger Status</span>
-                    <div id="statusBadge" class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 w-max">
-                        Handover Successful
+            <div class="bg-oss-900 border border-oss-700/80 rounded-lg p-3.5 shadow-md relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
+                <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Neighbor RSRP</p>
+                <div class="flex items-baseline justify-between mt-1">
+                    <span id="kpi_neighbor" class="text-lg font-mono font-bold text-slate-100">- dBm</span>
+                    <span class="text-[10px] text-amber-400 font-mono">NCell</span>
+                </div>
+            </div>
+
+            <div class="bg-oss-900 border border-oss-700/80 rounded-lg p-3.5 shadow-md relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-cyan-500"></div>
+                <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide">A3 Margin</p>
+                <div class="flex items-baseline justify-between mt-1">
+                    <span id="kpi_margin" class="text-lg font-mono font-bold text-slate-100">- dB</span>
+                    <span class="text-[10px] text-cyan-400 font-mono">Delta</span>
+                </div>
+            </div>
+
+            <div class="bg-oss-900 border border-oss-700/80 rounded-lg p-3.5 shadow-md relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
+                <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide">TTT Status</p>
+                <div class="flex items-baseline justify-between mt-1">
+                    <span id="kpi_ttt" class="text-lg font-mono font-bold text-slate-100">0 / 10</span>
+                    <span class="text-[10px] text-purple-400 font-mono">Steps</span>
+                </div>
+            </div>
+
+            <div class="col-span-2 md:col-span-1 bg-oss-900 border border-oss-700/80 rounded-lg p-3.5 shadow-md relative overflow-hidden">
+                <div id="kpi_rlf_indicator" class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide">RLF Margin</p>
+                <div class="flex items-baseline justify-between mt-1">
+                    <span id="kpi_rlf_margin" class="text-lg font-mono font-bold text-emerald-400">- dB</span>
+                    <span class="text-[10px] text-slate-400 font-mono">Headroom</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Parameter Controls Sidebar -->
+        <div class="lg:col-span-1 space-y-5">
+            <!-- Scenario Selector Box -->
+            <div class="bg-oss-900 border border-oss-700/80 rounded-lg p-5 shadow-xl">
+                <div class="flex items-center justify-between pb-3 border-b border-oss-700 mb-4">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono flex items-center space-x-2">
+                        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        <span>Sim Environment</span>
+                    </h2>
+                    <button id="randomize-scenario-btn" class="text-[10px] font-mono text-cyan-400 hover:text-cyan-300 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800 transition-colors">
+                        🎲 Roll Random
+                    </button>
+                </div>
+                <div class="space-y-3">
+                    <label for="scenario_select" class="text-xs font-medium text-slate-300">Active Scenario Profile</label>
+                    <select id="scenario_select" class="w-full bg-oss-800 border border-oss-600 rounded p-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500">
+                        <option value="urban">Urban Dense (Heavy Fading / Rapid Drop)</option>
+                        <option value="highway">High-Speed Corridor (Smooth Transition)</option>
+                        <option value="deep_indoor">Indoor Deep Penetration (Low RSRQ/RSRP)</option>
+                        <option value="rural">Rural LOS Plain (Extended Cell Reach)</option>
+                        <option value="pingpong">Microcell Cluster (High Ping-Pong Risk)</option>
+                    </select>
+                    <p id="scenario_desc" class="text-[11px] text-slate-400 italic mt-1">Simulating standard urban canyon propagation profile.</p>
+                </div>
+            </div>
+
+            <div class="bg-oss-900 border border-oss-700/80 rounded-lg p-5 shadow-xl">
+                <div class="flex items-center justify-between pb-3 border-b border-oss-700 mb-4">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono flex items-center space-x-2">
+                        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                        </svg>
+                        <span>Radio Parameters</span>
+                    </h2>
+                    <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-900">3GPP Standard</span>
+                </div>
+
+                <div class="space-y-4 text-sm">
+                    <!-- A3 Offset -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="a3_offset" class="text-xs font-medium text-slate-300">A3 Offset (CIO)</label>
+                            <span id="val_a3_offset" class="text-xs font-mono bg-oss-800 text-cyan-300 px-1.5 py-0.5 rounded border border-oss-600">3.0 dB</span>
+                        </div>
+                        <input type="range" id="a3_offset" min="-12" max="12" step="1" value="3" 
+                            class="w-full h-1.5 bg-oss-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                        <p class="text-[10px] text-slate-500 mt-0.5">Offset for neighbor trigger condition.</p>
+                    </div>
+
+                    <!-- Hysteresis -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="hysteresis" class="text-xs font-medium text-slate-300">Hysteresis</label>
+                            <span id="val_hysteresis" class="text-xs font-mono bg-oss-800 text-cyan-300 px-1.5 py-0.5 rounded border border-oss-600">1.0 dB</span>
+                        </div>
+                        <input type="range" id="hysteresis" min="0" max="4" step="0.5" value="1.0" 
+                            class="w-full h-1.5 bg-oss-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                        <p class="text-[10px] text-slate-500 mt-0.5">Anti-ping-pong safety margin.</p>
+                    </div>
+
+                    <!-- TTT Steps -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="ttt_steps" class="text-xs font-medium text-slate-300">Time-To-Trigger (TTT)</label>
+                            <span id="val_ttt_steps" class="text-xs font-mono bg-oss-800 text-cyan-300 px-1.5 py-0.5 rounded border border-oss-600">10 steps</span>
+                        </div>
+                        <input type="range" id="ttt_steps" min="1" max="40" step="1" value="10" 
+                            class="w-full h-1.5 bg-oss-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                        <p class="text-[10px] text-slate-500 mt-0.5">Persistence filter step count.</p>
+                    </div>
+
+                    <!-- RLF Threshold -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="rlf_threshold" class="text-xs font-medium text-slate-300">RLF Drop Limit</label>
+                            <span id="val_rlf_threshold" class="text-xs font-mono bg-oss-800 text-cyan-300 px-1.5 py-0.5 rounded border border-oss-600">-108.0 dBm</span>
+                        </div>
+                        <input type="range" id="rlf_threshold" min="-115" max="-95" step="1" value="-108" 
+                            class="w-full h-1.5 bg-oss-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                        <p class="text-[10px] text-slate-500 mt-0.5">Retainability failure threshold.</p>
                     </div>
                 </div>
-                <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 backdrop-blur flex flex-col justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">A3 Margin Delta</span>
-                    <div id="marginDelta" class="mt-2 text-2xl font-bold font-mono text-indigo-400">+7.0 dB</div>
-                </div>
-                <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 backdrop-blur flex flex-col justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Simulated State</span>
-                    <div id="simStateText" class="mt-2 text-sm font-medium text-slate-300">Condition satisfied continuously.</div>
-                </div>
             </div>
 
-            <!-- Chart Container -->
-            <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-5 backdrop-blur flex-grow flex flex-col">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-sm font-semibold tracking-wider text-slate-400 uppercase">RSRP Telemetry & Trigger Progression</h2>
-                    <span class="text-xs font-mono text-slate-500">3GPP TS 36.331 Condition Curve</span>
-                </div>
-                <div class="relative h-72 sm:h-96 w-full flex-grow">
-                    <canvas id="telemetryChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Audit Console Log -->
-            <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-5 backdrop-blur">
-                <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-sm font-semibold tracking-wider text-slate-400 uppercase">Operations Audit Console</h2>
-                    <button onclick="clearLogs()" class="text-xs text-slate-400 hover:text-slate-200 underline cursor-pointer">Clear Log</button>
-                </div>
-                <div id="auditLog" class="bg-slate-950 rounded-xl p-3 font-mono text-xs text-slate-400 h-32 overflow-y-auto flex flex-col gap-1 border border-slate-800/60">
-                    <div>[System] Initialized A3Sim engine successfully. Ready.</div>
+            <!-- Handover Analytics Summary Card -->
+            <div class="bg-oss-900 border border-oss-700/80 rounded-lg p-5 shadow-xl">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono mb-3 pb-2 border-b border-oss-700">Analytics Summary</h3>
+                <div class="space-y-2.5 text-xs">
+                    <div class="flex justify-between py-1 border-b border-oss-800">
+                        <span class="text-slate-400">Execution Result</span>
+                        <span id="summary_outcome" class="font-mono font-medium text-slate-200">Evaluating...</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-oss-800">
+                        <span class="text-slate-400">Trigger Distance</span>
+                        <span id="summary_distance" class="font-mono text-slate-200">-</span>
+                    </div>
+                    <div class="flex justify-between py-1">
+                        <span class="text-slate-400">Neighbor RSRP at HO</span>
+                        <span id="summary_rsrp" class="font-mono text-slate-200">-</span>
+                    </div>
                 </div>
             </div>
+        </div>
 
-        </section>
+        <!-- Main Chart Section -->
+        <div class="lg:col-span-3 flex flex-col space-y-6">
+            <div class="bg-oss-900 border border-oss-700/80 rounded-lg p-5 shadow-xl flex-1 flex flex-col">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-3 border-b border-oss-700 gap-2">
+                    <div>
+                        <h3 class="text-sm font-semibold text-white font-mono flex items-center space-x-2">
+                            <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                            <span>RSRP Signal Trajectory & Handover Trigger Analysis</span>
+                        </h3>
+                        <p class="text-xs text-slate-400">Simulated UE trajectory across 100 meters with multipath fading and TTT filtering.</p>
+                    </div>
+                    <div class="flex items-center space-x-4 text-xs font-mono">
+                        <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-blue-500 inline-block"></span><span class="text-slate-300">Serving RSRP</span></span>
+                        <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-amber-500 inline-block"></span><span class="text-slate-300">Neighbor RSRP</span></span>
+                        <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-red-400 inline-block border-dashed"></span><span class="text-slate-300">A3 Threshold</span></span>
+                    </div>
+                </div>
+                <div class="relative flex-1 w-full min-h-[380px]">
+                    <canvas id="rnoChart"></canvas>
+                </div>
+            </div>
+        </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-800 bg-slate-900/40 py-4 text-center text-xs text-slate-500">
-        A3Sim • Open Source 3GPP Handover Simulator hosted on GitHub Pages
-    </footer>
+    <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        <div class="bg-oss-900 border border-oss-700/80 rounded-lg p-4 shadow-xl">
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-oss-700">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">3GPP Audit Trail Console</h3>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-[10px] font-mono text-slate-400">STREAM ACTIVE</span>
+                </div>
+            </div>
+            <div id="audit-console" class="bg-oss-950 border border-oss-800 rounded p-3 h-32 overflow-y-auto font-mono text-xs space-y-1.5 text-slate-300">
+                <!-- Log items populated dynamically -->
+            </div>
+        </div>
+    </div>
 
-    <!-- JavaScript Logic & Chart Engine -->
     <script>
-        let chart;
-
-        // Initialize UI labels from default slider values
-        function updateLabels() {
-            document.getElementById('servingRsrpVal').innerText = document.getElementById('servingRsrp').value + ' dBm';
-            document.getElementById('neighborRsrpVal').innerText = document.getElementById('neighborRsrp').value + ' dBm';
-            document.getElementById('a3OffsetVal').innerText = parseFloat(document.getElementById('a3Offset').value).toFixed(1) + ' dB';
-            document.getElementById('hysteresisVal').innerText = parseFloat(document.getElementById('hysteresis').value).toFixed(1) + ' dB';
-            document.getElementById('tttVal').innerText = document.getElementById('ttt').value + ' ms';
-        }
-
-        // Random Scenario Generator Engine
-        function randomizeScenario() {
-            // 1. Randomize Serving RSRP between -105 dBm (poor) and -75 dBm (good)
-            const servingRSRP = Math.floor(Math.random() * ( -75 - (-105) + 1 )) + (-105);
-            
-            // 2. Randomize Neighbor RSRP relative to serving (-15 dB to +15 dB)
-            const neighborDelta = Math.floor(Math.random() * 31) - 15; 
-            let neighborRSRP = servingRSRP + neighborDelta;
-            
-            // Cap neighbor RSRP to realistic boundaries (-110 to -70)
-            neighborRSRP = Math.max(-110, Math.min(-70, neighborRSRP));
-
-            // 3. Randomize standard parameters
-            const a3Offsets = [1.0, 2.0, 3.0, 4.0, 5.0];
-            const a3Offset = a3Offsets[Math.floor(Math.random() * a3Offsets.length)];
-            
-            const hystValues = [0.5, 1.0, 2.0];
-            const hysteresis = hystValues[Math.floor(Math.random() * hystValues.length)];
-            
-            const tttOptions = [40, 80, 160, 320, 640];
-            const ttt = tttOptions[Math.floor(Math.random() * tttOptions.length)];
-
-            // 4. Update Inputs
-            document.getElementById('servingRsrp').value = servingRSRP;
-            document.getElementById('neighborRsrp').value = neighborRSRP;
-            document.getElementById('a3Offset').value = a3Offset;
-            document.getElementById('hysteresis').value = hysteresis;
-            document.getElementById('ttt').value = ttt;
-
-            updateLabels();
-            runSimulation();
-
-            logEvent(`🎲 Random scenario generated: Serving=${servingRSRP}dBm, Neighbor=${neighborRSRP}dBm, A3=${a3Offset}dB, TTT=${ttt}ms`);
-        }
-
-        // Simulation Calculation & Chart Rendering Engine
-        function runSimulation() {
-            const Mp = parseFloat(document.getElementById('servingRsrp').value);
-            const Mn = parseFloat(document.getElementById('neighborRsrp').value);
-            const Off = parseFloat(document.getElementById('a3Offset').value);
-            const Hys = parseFloat(document.getElementById('hysteresis').value);
-            const ttt = parseInt(document.getElementById('ttt').value);
-
-            // 3GPP A3 Handover condition: Mn + Ocn - Hys > Mp + Ocp + Off (assuming Ocn=Ocp=0)
-            const neighborSide = Mn - Hys;
-            const servingSide = Mp + Off;
-            const margin = neighborSide - servingSide;
-
-            document.getElementById('marginDelta').innerText = (margin >= 0 ? '+' : '') + margin.toFixed(1) + ' dB';
-
-            const statusBadge = document.getElementById('statusBadge');
-            const simStateText = document.getElementById('simStateText');
-
-            let isSuccessful = false;
-            if (margin > 0) {
-                isSuccessful = true;
-                statusBadge.className = "mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 w-max";
-                statusBadge.innerText = "Handover Successful";
-                simStateText.innerText = `Condition satisfied (Neighbor exceeds Serving + Offset + Hys for TTT=${ttt}ms).`;
-            } else {
-                statusBadge.className = "mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20 w-max";
-                statusBadge.innerText = "Call Failed / Not Triggered";
-                simStateText.innerText = `Condition NOT met. Neighbor is below the required A3 trigger threshold.`;
+        // Scenario Database with varied propagation physics profiles
+        const scenarios = {
+            urban: {
+                name: "Urban Dense",
+                desc: "Severe urban multi-path fading with rapid signal decay and high structure interference.",
+                servBase: -72, servSlope: 0.45, neighBase: -118, neighSlope: 0.48, fadeFreq: 4.0, fadeAmp: 1.8, noiseMul: 0.6
+            },
+            highway: {
+                name: "High-Speed Corridor",
+                desc: "Open highway corridor featuring smooth path loss curves and stable line-of-sight tracking.",
+                servBase: -78, servSlope: 0.32, neighBase: -110, neighSlope: 0.35, fadeFreq: 8.0, fadeAmp: 0.8, noiseMul: 0.2
+            },
+            deep_indoor: {
+                name: "Indoor Deep Penetration",
+                desc: "Deep indoor building profile with severe initial attenuation and compressed handover window headroom.",
+                servBase: -85, servSlope: 0.50, neighBase: -120, neighSlope: 0.42, fadeFreq: 3.0, fadeAmp: 2.2, noiseMul: 0.8
+            },
+            rural: {
+                name: "Rural LOS Plain",
+                desc: "Extended cell reach over open flat terrain with very gradual signal degradation.",
+                servBase: -68, servSlope: 0.22, neighBase: -122, neighSlope: 0.30, fadeFreq: 12.0, fadeAmp: 0.5, noiseMul: 0.15
+            },
+            pingpong: {
+                name: "Microcell Cluster",
+                desc: "Dense microcell layout with overlapping coverage sectors and high ping-pong handover vulnerability.",
+                servBase: -75, servSlope: 0.40, neighBase: -112, neighSlope: 0.40, fadeFreq: 2.5, fadeAmp: 2.5, noiseMul: 0.9
             }
+        };
 
-            // Generate time-series steps for Chart.js visualization
-            const steps = 10;
-            const timeLabels = [];
-            const servingData = [];
-            const neighborData = [];
+        // DOM Elements
+        const inputs = {
+            a3_offset: document.getElementById('a3_offset'),
+            hysteresis: document.getElementById('hysteresis'),
+            ttt_steps: document.getElementById('ttt_steps'),
+            rlf_threshold: document.getElementById('rlf_threshold')
+        };
 
-            for (let i = 0; i <= steps; i++) {
-                timeLabels.push((i * (ttt / steps)).toFixed(0) + ' ms');
-                // Add minor smooth convergence wave
-                const progressFactor = i / steps;
-                servingData.push(Mp);
-                neighborData.push(Mn - (1 - progressFactor) * 2);
-            }
+        const displays = {
+            a3_offset: document.getElementById('val_a3_offset'),
+            hysteresis: document.getElementById('val_hysteresis'),
+            ttt_steps: document.getElementById('val_ttt_steps'),
+            rlf_threshold: document.getElementById('val_rlf_threshold')
+        };
 
-            if (chart) {
-                chart.data.labels = timeLabels;
-                chart.data.datasets[0].data = servingData;
-                chart.data.datasets[1].data = neighborData;
-                chart.update();
-            }
+        const kpis = {
+            serving: document.getElementById('kpi_serving'),
+            neighbor: document.getElementById('kpi_neighbor'),
+            margin: document.getElementById('kpi_margin'),
+            ttt: document.getElementById('kpi_ttt'),
+            rlfMargin: document.getElementById('kpi_rlf_margin'),
+            rlfIndicator: document.getElementById('kpi_rlf_indicator')
+        };
+
+        const summary = {
+            outcome: document.getElementById('summary_outcome'),
+            distance: document.getElementById('summary_distance'),
+            rsrp: document.getElementById('summary_rsrp')
+        };
+
+        const statusBadge = document.getElementById('status-badge');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const auditConsole = document.getElementById('audit-console');
+        const exportBtn = document.getElementById('export-csv-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const scenarioSelect = document.getElementById('scenario_select');
+        const scenarioDesc = document.getElementById('scenario_desc');
+        const randomizeBtn = document.getElementById('randomize-scenario-btn');
+
+        let lastSimulationData = null;
+
+        function logAudit(message, type = 'INFO') {
+            const timestamp = new Date().toISOString().split('T')[1].slice(0, 8);
+            const colorClass = type === 'SUCCESS' ? 'text-emerald-400' : type === 'ERROR' ? 'text-rose-400' : type === 'WARN' ? 'text-amber-400' : 'text-cyan-400';
+            const logItem = document.createElement('div');
+            logItem.className = "flex items-start space-x-2";
+            logItem.innerHTML = `<span class="text-slate-500">[${timestamp}]</span><span class="${colorClass} font-bold">[${type}]</span><span class="text-slate-300">${message}</span>`;
+            auditConsole.appendChild(logItem);
+            auditConsole.scrollTop = auditConsole.scrollHeight;
         }
 
-        // Audit Console Logger
-        function logEvent(message) {
-            const auditLog = document.getElementById('auditLog');
-            const timeStr = new Date().toLocaleTimeString();
-            const logEntry = document.createElement('div');
-            logEntry.innerText = `[${timeStr}] ${message}`;
-            auditLog.prepend(logEntry);
-        }
+        // Initialize Chart.js with gradient fills
+        const ctx = document.getElementById('rnoChart').getContext('2d');
+        
+        const servingGradient = ctx.createLinearGradient(0, 0, 0, 350);
+        servingGradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+        servingGradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
 
-        function clearLogs() {
-            document.getElementById('auditLog.innerHTML = ""');
-            document.getElementById('auditLog').innerHTML = `<div>[System] Log cleared.</div>`;
-        }
+        const neighborGradient = ctx.createLinearGradient(0, 0, 0, 350);
+        neighborGradient.addColorStop(0, 'rgba(245, 158, 11, 0.3)');
+        neighborGradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
 
-        // Initialize Chart on Page Load
-        window.addEventListener('DOMContentLoaded', () => {
-            updateLabels();
-
-            const ctx = document.getElementById('telemetryChart').getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['0 ms', '40 ms', '80 ms', '120 ms', '160 ms'],
-                    datasets: [
-                        {
-                            label: 'Serving Cell RSRP (Mp)',
-                            data: [-85, -85, -85, -85, -85],
-                            borderColor: '#6366f1',
-                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Neighbor Cell RSRP (Mn)',
-                            data: [-75, -75, -75, -75, -75],
-                            borderColor: '#06b6d4',
-                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: { color: '#94a3b8', font: { family: 'sans-serif' } }
-                        }
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Serving Cell RSRP',
+                        borderColor: '#3b82f6',
+                        backgroundColor: servingGradient,
+                        fill: true,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.1,
+                        data: []
                     },
-                    scales: {
-                        x: {
-                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
-                            ticks: { color: '#64748b' }
-                        },
-                        y: {
-                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
-                            ticks: { color: '#64748b' }
-                        }
+                    {
+                        label: 'Neighbor Cell RSRP',
+                        borderColor: '#f59e0b',
+                        backgroundColor: neighborGradient,
+                        fill: true,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.1,
+                        data: []
+                    },
+                    {
+                        label: 'A3 Trigger Threshold',
+                        borderColor: 'rgba(239, 68, 68, 0.7)',
+                        borderDash: [5, 5],
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        data: []
+                    },
+                    {
+                        label: 'RLF Drop Limit',
+                        borderColor: 'rgba(168, 85, 247, 0.8)',
+                        borderDash: [2, 2],
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        data: []
+                    },
+                    {
+                        label: 'Event Marker',
+                        borderColor: '#10b981',
+                        backgroundColor: '#10b981',
+                        pointRadius: 6,
+                        pointStyle: 'circle',
+                        showLine: false,
+                        data: []
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 150 },
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Distance from Serving Cell (meters)', color: '#94a3b8', font: { family: 'Inter', size: 11 } },
+                        grid: { color: 'rgba(31, 41, 55, 0.6)' },
+                        ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
+                    },
+                    y: {
+                        min: -125,
+                        max: -60,
+                        title: { display: true, text: 'RSRP (dBm)', color: '#94a3b8', font: { family: 'Inter', size: 11 } },
+                        grid: { color: 'rgba(31, 41, 55, 0.6)' },
+                        ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#cbd5e1', font: { family: 'Inter', size: 11 }, boxWidth: 12 } },
+                    tooltip: {
+                        backgroundColor: 'rgba(11, 15, 25, 0.95)',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderColor: '#374151',
+                        borderWidth: 1,
+                        padding: 10,
+                        boxPadding: 4,
+                        bodyFont: { family: 'JetBrains Mono' }
                     }
                 }
+            }
+        });
+
+        function runSimulation() {
+            const a3_offset = parseFloat(inputs.a3_offset.value);
+            const hysteresis = parseFloat(inputs.hysteresis.value);
+            const ttt_steps = parseInt(inputs.ttt_steps.value);
+            const rlf_threshold = parseFloat(inputs.rlf_threshold.value);
+
+            displays.a3_offset.textContent = `${a3_offset > 0 ? '+' : ''}${a3_offset.toFixed(1)} dB`;
+            displays.hysteresis.textContent = `${hysteresis.toFixed(1)} dB`;
+            displays.ttt_steps.textContent = `${ttt_steps} steps`;
+            displays.rlf_threshold.textContent = `${rlf_threshold.toFixed(1)} dBm`;
+
+            const currentScenarioKey = scenarioSelect.value;
+            const profile = scenarios[currentScenarioKey] || scenarios.urban;
+            scenarioDesc.textContent = profile.desc;
+
+            const points = 250;
+            const distance = [];
+            const serving_rsrp = [];
+            const neighbor_rsrp = [];
+            const a3_threshold_arr = [];
+            const rlf_arr = [];
+            const marker_arr = new Array(points).fill(null);
+
+            let consecutive_count = 0;
+            let trigger_index = null;
+            let dropped = false;
+            let drop_index = null;
+
+            for (let i = 0; i < points; i++) {
+                let d = (i / (points - 1)) * 100;
+                distance.push(d.toFixed(1));
+
+                let noise = Math.sin(d * 12.9898) * profile.noiseMul;
+                let fading = Math.sin(d / profile.fadeFreq) * profile.fadeAmp;
+
+                let serv = profile.servBase - (profile.servSlope * d) - fading + noise;
+                let neigh = profile.neighBase + (profile.neighSlope * d) + fading + noise;
+
+                serving_rsrp.push(serv);
+                neighbor_rsrp.push(neigh);
+                a3_threshold_arr.push(serv + a3_offset + hysteresis);
+                rlf_arr.push(rlf_threshold);
+
+                if (!dropped && serv < rlf_threshold) {
+                    dropped = true;
+                    drop_index = i;
+                }
+
+                if (!dropped && trigger_index === null) {
+                    let a3_cond = (neigh - hysteresis) > (serv + a3_offset);
+                    if (a3_cond) {
+                        consecutive_count++;
+                        if (consecutive_count >= ttt_steps) {
+                            trigger_index = i - ttt_steps + 1;
+                        }
+                    } else {
+                        consecutive_count = Math.max(0, consecutive_count - 1);
+                    }
+                }
+            }
+
+            lastSimulationData = { distance, serving_rsrp, neighbor_rsrp };
+
+            const mid = Math.floor(points / 2);
+            kpis.serving.textContent = `${serving_rsrp[mid].toFixed(1)} dBm`;
+            kpis.neighbor.textContent = `${neighbor_rsrp[mid].toFixed(1)} dBm`;
+            const currentMargin = (neighbor_rsrp[mid] - serving_rsrp[mid]).toFixed(1);
+            kpis.margin.textContent = `${currentMargin > 0 ? '+' : ''}${currentMargin} dB`;
+            kpis.ttt.textContent = `${consecutive_count} / ${ttt_steps}`;
+
+            const rlfHeadroom = (serving_rsrp[mid] - rlf_threshold).toFixed(1);
+            kpis.rlfMargin.textContent = `${rlfHeadroom} dB`;
+            if (rlfHeadroom < 3) {
+                kpis.rlfIndicator.className = "absolute top-0 left-0 w-1 h-full bg-rose-500 animate-ping";
+                kpis.rlfMargin.className = "text-lg font-mono font-bold text-rose-400";
+            } else {
+                kpis.rlfIndicator.className = "absolute top-0 left-0 w-1 h-full bg-emerald-500";
+                kpis.rlfMargin.className = "text-lg font-mono font-bold text-emerald-400";
+            }
+
+            if (dropped) {
+                statusBadge.className = "px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 bg-rose-950/80 border-rose-800 text-rose-300";
+                statusDot.className = "w-2 h-2 rounded-full animate-pulse bg-rose-500";
+                statusText.textContent = "RADIO LINK FAILURE (RLF)";
+                summary.outcome.textContent = "CALL FAILED (RLF)";
+                summary.outcome.className = "font-mono font-semibold text-rose-400";
+                summary.distance.textContent = `${distance[drop_index]}m`;
+                summary.rsrp.textContent = `${neighbor_rsrp[drop_index].toFixed(1)} dBm`;
+                marker_arr[drop_index] = neighbor_rsrp[drop_index];
+
+                chart.data.datasets[4].borderColor = '#ef4444';
+                chart.data.datasets[4].backgroundColor = '#ef4444';
+                chart.data.datasets[4].label = 'RLF Drop Point';
+            } else if (trigger_index !== null) {
+                statusBadge.className = "px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 bg-emerald-950/80 border-emerald-800 text-emerald-300";
+                statusDot.className = "w-2 h-2 rounded-full animate-pulse bg-emerald-500";
+                statusText.textContent = "HANDOVER SUCCESSFUL";
+                summary.outcome.textContent = "SUCCESSFUL";
+                summary.outcome.className = "font-mono font-semibold text-emerald-400";
+                summary.distance.textContent = `${distance[trigger_index]}m`;
+                summary.rsrp.textContent = `${neighbor_rsrp[trigger_index].toFixed(1)} dBm`;
+                marker_arr[trigger_index] = neighbor_rsrp[trigger_index];
+
+                chart.data.datasets[4].borderColor = '#10b981';
+                chart.data.datasets[4].backgroundColor = '#10b981';
+                chart.data.datasets[4].label = 'HO Trigger Point';
+            } else {
+                statusBadge.className = "px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 bg-amber-950/80 border-amber-800 text-amber-300";
+                statusDot.className = "w-2 h-2 rounded-full animate-pulse bg-amber-500";
+                statusText.textContent = "HANDOVER BLOCKED";
+                summary.outcome.textContent = "BLOCKED / NO TRIGGER";
+                summary.outcome.className = "font-mono font-semibold text-amber-400";
+                summary.distance.textContent = "N/A";
+                summary.rsrp.textContent = "N/A";
+
+                chart.data.datasets[4].borderColor = '#f59e0b';
+                chart.data.datasets[4].backgroundColor = '#f59e0b';
+                chart.data.datasets[4].label = 'Blocked';
+            }
+
+            chart.data.labels = distance;
+            chart.data.datasets[0].data = serving_rsrp;
+            chart.data.datasets[1].data = neighbor_rsrp;
+            chart.data.datasets[2].data = a3_threshold_arr;
+            chart.data.datasets[3].data = rlf_arr;
+            chart.data.datasets[4].data = marker_arr;
+            chart.update();
+        }
+
+        function rollRandomScenario() {
+            const keys = Object.keys(scenarios);
+            const randomKey = keys[Math.floor(Math.random() * keys.length)];
+            scenarioSelect.value = randomKey;
+            runSimulation();
+            logAudit(`Randomized environment profile: ${scenarios[randomKey].name}`, 'WARN');
+        }
+
+        // Event Listeners
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('input', () => {
+                runSimulation();
+                logAudit(`Parameter updated: ${input.id} = ${input.value}`, 'INFO');
             });
+        });
+
+        scenarioSelect.addEventListener('change', () => {
+            runSimulation();
+            logAudit(`Switched scenario profile to: ${scenarios[scenarioSelect.value].name}`, 'INFO');
+        });
+
+        randomizeBtn.addEventListener('click', rollRandomScenario);
+
+        resetBtn.addEventListener('click', () => {
+            inputs.a3_offset.value = 3.0;
+            inputs.hysteresis.value = 1.0;
+            inputs.ttt_steps.value = 10;
+            inputs.rlf_threshold.value = -108.0;
+            runSimulation();
+            logAudit('Parameters reset to default 3GPP air-interface baselines.', 'WARN');
+        });
+
+        exportBtn.addEventListener('click', () => {
+            if (!lastSimulationData) return;
+            let csvContent = "data:text/csv;charset=utf-8,Distance(m),Serving_RSRP(dBm),Neighbor_RSRP(dBm)\n";
+            for (let i = 0; i < lastSimulationData.distance.length; i++) {
+                csvContent += `${lastSimulationData.distance[i]},${lastSimulationData.serving_rsrp[i].toFixed(2)},${lastSimulationData.neighbor_rsrp[i].toFixed(2)}\n`;
+            }
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `a3_simulation_telemetry_${Date.now()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            logAudit('Telemetry CSV export successfully generated and downloaded.', 'SUCCESS');
+        });
+
+        window.onload = function() {
+            // Automatically randomize on page refresh / load
+            const keys = Object.keys(scenarios);
+            const initialRandomKey = keys[Math.floor(Math.random() * keys.length)];
+            scenarioSelect.value = initialRandomKey;
 
             runSimulation();
-        });
+            logAudit('A3Sim Universal 3GPP Mobility Engine initialized successfully.', 'SUCCESS');
+            logAudit(`Loaded initial randomized scenario profile: ${scenarios[initialRandomKey].name}`, 'SUCCESS');
+        };
     </script>
 </body>
 </html>
