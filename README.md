@@ -1,61 +1,56 @@
-# A3Sim: Universal 3GPP LTE / 5G NR Handover & Retainability Simulator
+# A3Sim // Universal 3GPP LTE / 5G NR Mobility & Retainability Suite
 
-**A3Sim** is a lightweight, professional-grade, vendor-agnostic web application designed to simulate Radio Network Optimization (RNO) handover events (Event A3), Time-To-Trigger (TTT), hysteresis, and Radio Link Failure (RLF) retainability KPIs based on **3GPP TS 36.331 / TS 38.331 specifications**.
+[![3GPP Compliant](https://img.shields.io/badge/3GPP-TS%2036%2F38-blue.svg)](https://www.3gpp.org/)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-cyan.svg)](https://your-username.github.io/a3-mobility-simulator/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/Version-v3.7--PRO-cyan.svg)]()
 
-Built with single-file portability in mind, it requires no backend installation, making it instantly accessible across desktop browsers and mobile devices.
+**A3Sim** is a vendor-agnostic, web-based radio network optimization (RNO) and mobility simulator designed to model cellular handovers, Event A3 triggers, and retainability (Radio Link Failure / RLF) across diverse macro-cell and micro-cell propagation environments.
 
----
-
-## 🚀 Live Demo
-Access the live simulator hosted on GitHub Pages:
-👉 **[https://ethanfrancisco.github.io/A3Sim/](https://ethanfrancisco.github.io/A3Sim/)**
-
----
-
-## 📡 Key Features
-* **Universal 3GPP Standards Compliance:** Universally applicable across major RAN vendors (Ericsson, Nokia, Huawei, Samsung, and Open RAN architectures).
-* **Real-Time Telemetry & KPI Cards:** Live numerical indicators tracking Serving RSRP, Neighbor RSRP, A3 Margin, TTT progression, and RLF headroom.
-* **Interactive Parameter Tuning:** Adjust physical and logical parameters on the fly via responsive range sliders:
-  * Serving & Neighbor Reference Signal Receive Power (RSRP)
-  * A3 Offset (dB)
-  * Hysteresis (dB)
-  * Time-To-Trigger (ms)
-* **Dynamic Charting:** Interactive gradient waveform rendering via Chart.js with visual trigger indicators and drop markers.
-* **Live Audit Console:** Built-in operations center log detailing simulation events, parameter adjustments, and handover transitions.
-* **CSV Telemetry Export:** Export real-time simulation datasets for offline post-processing and analysis.
-* **Fully Responsive UI:** Optimized for desktop command centers, tablets, and mobile smartphones.
+🌐 **[Access the Live A3Sim Dashboard Here](https://ethanfrancisco.github.io/A3Sim/)**
 
 ---
 
-## 🧠 Technical Overview & 3GPP Compliance
+## 🚀 Key Features & Capabilities
 
-The simulator models the classic handover triggering condition governed by **3GPP specifications**:
+### 1. 3GPP Compliant Propagation Profiles
+Model different deployment topologies with profile-aware path-loss slopes, fading frequencies, and dynamic distance scaling:
+* **Urban Macro (UMa - 500m ISD)**: Standard urban macro layout with moderate path loss.
+* **Suburban Macro (1km ISD)**: Wide-area suburban deployment with gradual signal degradation.
+* **Rural Macro (RMa - 1.5km+ ISD)**: Open-terrain long-range link requiring high link stability and large TTT windows.
+* **Urban Micro / Small Cell**: Dense small-cell deployment with rapid signal drops and tight handover boundaries.
+* **Microcell Cluster (Ping-Pong Risk)**: Overlapping sectors prone to frequent handovers and potential RLF during fast movement.
 
-$$Mp + Ocp + Hys < Mn + Ocn - Off$$
+### 2. Rigorous Mobility Analytics & Visualization
+* **Precision Event A3 Marker**: The green handover success marker explicitly locks onto the exact **A3 Threshold intersection point** (`Serving RSRP + A3 Offset + Hysteresis`), providing true 3GPP mathematical compliance and visual clarity.
+* **Retainability & RLF Monitoring**: Real-time tracking of signal drop limits and headroom margins against custom thresholds.
+* **Interactive Controls**: Fine-tune parameters instantly using standardized sliders:
+  * **A3 Offset (CIO)**: $-12\text{ dB}$ to $+12\text{ dB}$
+  * **Hysteresis**: $0\text{ dB}$ to $4\text{ dB}$
+  * **Time-To-Trigger (TTT)**: Standard 3GPP TS 36/38 values ($0\text{ ms}$ to $5120\text{ ms}$)
+  * **RLF Drop Limit**: $-120\text{ dBm}$ to $-95\text{ dBm}$
 
-Where:
-* **$Mp / Mn$:** Measured RSRP of the Serving cell and Neighbor cell respectively.
-* **$Ocp / Ocn$:** Cell-specific offsets.
-* **$Hys$:** Hysteresis parameter preventing ping-pong handovers.
-* **$Off$:** A3 Offset defining the threshold margin required for triggering Event A3.
-
-If the condition holds continuously for the duration of the **Time-To-Trigger (TTT)** timer, a successful handover is executed. If the serving cell signal degrades below the **RLF Threshold** before a handover completes, a Radio Link Failure (retainability drop) is logged.
+### 3. Professional OSS/BSS Interface
+* **Dark-Mode Command Center**: Built with Tailwind CSS and styled for telecom and RF engineering workflows.
+* **Live Audit Trail Console**: Real-time status stream logging simulation events, scenario switches, and threshold violations.
+* **CSV Telemetry Export**: Export complete simulation datasets (Distance, Serving RSRP, Neighbor RSRP) for offline drive-test and post-processing analysis.
 
 ---
 
 ## 🛠️ Tech Stack
-* **HTML5 / Single-Page Architecture**
-* **Tailwind CSS** (for enterprise OSS/NMS dark-mode styling)
-* **Chart.js** (for high-performance telemetry visualization)
-* **GitHub Pages** (for static hosting)
+
+* **Frontend**: HTML5, Vanilla JavaScript (ES6+)
+* **Styling**: Tailwind CSS (Dark Theme Configuration)
+* **Charting**: Chart.js with responsive multi-axis rendering and custom canvas gradients
+* **Typography**: Inter & JetBrains Mono
 
 ---
 
-## ⚙️ Local Installation & Usage
+## 🏃‍♂️ Getting Started
 
-Because `A3Sim` is completely self-contained within a single `index.html` file, running it locally requires zero complex build pipelines or node module installations.
+You can test the application instantly via the **[Live Demo](https://ethanfrancisco.github.io/A3Sim/)**, or run it locally since it is a fully self-contained, single-file application:
 
-1. **Clone the repository:**
+1. **Clone the repository**:
    ```bash
-   git clone [https://github.com/](https://github.com/)<your-username>/A3Sim.git
-   cd A3Sim
+   git clone [https://github.com/your-username/a3-mobility-simulator.git](https://github.com/your-username/a3-mobility-simulator.git)
+   cd a3-mobility-simulator
