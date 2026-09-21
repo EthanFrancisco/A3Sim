@@ -39,7 +39,6 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
-        /* Custom scrollbar for OSS audit console */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0b0f19; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
@@ -59,7 +58,7 @@
                 <div>
                     <div class="flex items-center space-x-2">
                         <h1 class="text-sm font-bold tracking-wider text-slate-100 uppercase">A3Sim // Universal 3GPP Mobility Engine</h1>
-                        <span class="px-1.5 py-0.5 text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded">v3.5-PRO</span>
+                        <span class="px-1.5 py-0.5 text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded">v3.6-PRO</span>
                     </div>
                     <p class="text-[11px] text-slate-400 font-mono">Universal 3GPP LTE / 5G NR Handover & Retainability Simulator (Vendor-Agnostic)</p>
                 </div>
@@ -118,8 +117,8 @@
                 <div class="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
                 <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide">TTT Status</p>
                 <div class="flex items-baseline justify-between mt-1">
-                    <span id="kpi_ttt" class="text-lg font-mono font-bold text-slate-100">0 / 10</span>
-                    <span class="text-[10px] text-purple-400 font-mono">Steps</span>
+                    <span id="kpi_ttt" class="text-lg font-mono font-bold text-slate-100">0 ms</span>
+                    <span class="text-[10px] text-purple-400 font-mono">Timer</span>
                 </div>
             </div>
 
@@ -172,7 +171,7 @@
                         </svg>
                         <span>Radio Parameters</span>
                     </h2>
-                    <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-900">3GPP Standard</span>
+                    <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-900">3GPP TS 36/38</span>
                 </div>
 
                 <div class="space-y-4 text-sm">
@@ -198,15 +197,15 @@
                         <p class="text-[10px] text-slate-500 mt-0.5">Anti-ping-pong safety margin.</p>
                     </div>
 
-                    <!-- TTT Steps -->
+                    <!-- Time-To-Trigger (ms) -->
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <label for="ttt_steps" class="text-xs font-medium text-slate-300">Time-To-Trigger (TTT)</label>
-                            <span id="val_ttt_steps" class="text-xs font-mono bg-oss-800 text-cyan-300 px-1.5 py-0.5 rounded border border-oss-600">10 steps</span>
+                            <label for="ttt_ms" class="text-xs font-medium text-slate-300">Time-To-Trigger (TTT)</label>
+                            <span id="val_ttt_ms" class="text-xs font-mono bg-oss-800 text-cyan-300 px-1.5 py-0.5 rounded border border-oss-600">128 ms</span>
                         </div>
-                        <input type="range" id="ttt_steps" min="1" max="40" step="1" value="10" 
+                        <input type="range" id="ttt_ms" min="0" max="15" step="1" value="5" 
                             class="w-full h-1.5 bg-oss-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
-                        <p class="text-[10px] text-slate-500 mt-0.5">Persistence filter step count.</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Standard 3GPP evaluation timer.</p>
                     </div>
 
                     <!-- RLF Threshold -->
@@ -251,7 +250,7 @@
                             <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
                             <span>RSRP Signal Trajectory & Handover Trigger Analysis</span>
                         </h3>
-                        <p class="text-xs text-slate-400">Simulated UE trajectory across 100 meters with multipath fading and TTT filtering.</p>
+                        <p class="text-xs text-slate-400">Simulated UE trajectory across 100 meters with multipath fading and 3GPP TTT persistence.</p>
                     </div>
                     <div class="flex items-center space-x-4 text-xs font-mono">
                         <span class="flex items-center space-x-1.5"><span class="w-3 h-0.5 bg-blue-500 inline-block"></span><span class="text-slate-300">Serving RSRP</span></span>
@@ -287,6 +286,9 @@
     </div>
 
     <script>
+        // Standard 3GPP TTT Values in Milliseconds (TS 36.331 / TS 38.331)
+        const TTT_VALUES_MS = [0, 40, 64, 80, 100, 128, 160, 256, 320, 480, 512, 640, 1024, 1280, 2560, 5120];
+
         // Scenario Database with varied propagation physics profiles
         const scenarios = {
             urban: {
@@ -320,14 +322,14 @@
         const inputs = {
             a3_offset: document.getElementById('a3_offset'),
             hysteresis: document.getElementById('hysteresis'),
-            ttt_steps: document.getElementById('ttt_steps'),
+            ttt_ms: document.getElementById('ttt_ms'),
             rlf_threshold: document.getElementById('rlf_threshold')
         };
 
         const displays = {
             a3_offset: document.getElementById('val_a3_offset'),
             hysteresis: document.getElementById('val_hysteresis'),
-            ttt_steps: document.getElementById('val_ttt_steps'),
+            ttt_ms: document.getElementById('val_ttt_ms'),
             rlf_threshold: document.getElementById('val_rlf_threshold')
         };
 
@@ -469,17 +471,21 @@
         function runSimulation() {
             const a3_offset = parseFloat(inputs.a3_offset.value);
             const hysteresis = parseFloat(inputs.hysteresis.value);
-            const ttt_steps = parseInt(inputs.ttt_steps.value);
+            const tttIndex = parseInt(inputs.ttt_ms.value);
+            const tttValueMs = TTT_VALUES_MS[tttIndex];
             const rlf_threshold = parseFloat(inputs.rlf_threshold.value);
 
             displays.a3_offset.textContent = `${a3_offset > 0 ? '+' : ''}${a3_offset.toFixed(1)} dB`;
             displays.hysteresis.textContent = `${hysteresis.toFixed(1)} dB`;
-            displays.ttt_steps.textContent = `${ttt_steps} steps`;
+            displays.ttt_ms.textContent = `${tttValueMs} ms`;
             displays.rlf_threshold.textContent = `${rlf_threshold.toFixed(1)} dBm`;
 
             const currentScenarioKey = scenarioSelect.value;
             const profile = scenarios[currentScenarioKey] || scenarios.urban;
             scenarioDesc.textContent = profile.desc;
+
+            // Map TTT ms to required persistence points (~40ms per spatial point step)
+            const requiredSteps = tttValueMs === 0 ? 1 : Math.max(1, Math.round(tttValueMs / 40));
 
             const points = 250;
             const distance = [];
@@ -518,8 +524,8 @@
                     let a3_cond = (neigh - hysteresis) > (serv + a3_offset);
                     if (a3_cond) {
                         consecutive_count++;
-                        if (consecutive_count >= ttt_steps) {
-                            trigger_index = i - ttt_steps + 1;
+                        if (consecutive_count >= requiredSteps) {
+                            trigger_index = i - requiredSteps + 1;
                         }
                     } else {
                         consecutive_count = Math.max(0, consecutive_count - 1);
@@ -534,7 +540,7 @@
             kpis.neighbor.textContent = `${neighbor_rsrp[mid].toFixed(1)} dBm`;
             const currentMargin = (neighbor_rsrp[mid] - serving_rsrp[mid]).toFixed(1);
             kpis.margin.textContent = `${currentMargin > 0 ? '+' : ''}${currentMargin} dB`;
-            kpis.ttt.textContent = `${consecutive_count} / ${ttt_steps}`;
+            kpis.ttt.textContent = `${tttValueMs} ms`;
 
             const rlfHeadroom = (serving_rsrp[mid] - rlf_threshold).toFixed(1);
             kpis.rlfMargin.textContent = `${rlfHeadroom} dB`;
@@ -565,7 +571,7 @@
                 summary.distance.textContent = `${distance[trigger_index]}m`;
                 summary.rsrp.textContent = `${neighbor_rsrp[trigger_index].toFixed(1)} dBm`;
                 marker_arr[trigger_index] = neighbor_rsrp[trigger_index];
-                logAudit(`A3 Handover successfully triggered and executed at ${distance[trigger_index]}m (Neighbor RSRP: ${neighbor_rsrp[trigger_index].toFixed(1)} dBm).`, 'SUCCESS');
+                logAudit(`A3 Handover successfully triggered and executed at ${distance[trigger_index]}m (TTT: ${tttValueMs}ms, Neighbor RSRP: ${neighbor_rsrp[trigger_index].toFixed(1)} dBm).`, 'SUCCESS');
             } else {
                 statusBadge.className = "px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 bg-amber-950/80 border-amber-800 text-amber-300";
                 statusDot.className = "w-2 h-2 rounded-full animate-pulse bg-amber-500";
@@ -574,7 +580,7 @@
                 summary.outcome.className = "font-mono font-semibold text-amber-400";
                 summary.distance.textContent = "N/A";
                 summary.rsrp.textContent = "N/A";
-                logAudit(`Handover criteria not fully met across trajectory for profile [${profile.name}].`, 'WARN');
+                logAudit(`Handover criteria not fully met across trajectory with TTT ${tttValueMs}ms for profile [${profile.name}].`, 'WARN');
             }
 
             chart.data.labels = distance;
@@ -598,7 +604,7 @@
             scenarioSelect.value = randomKey;
             inputs.a3_offset.value = (Math.random() * 8 - 4).toFixed(0);
             inputs.hysteresis.value = (Math.random() * 3).toFixed(1);
-            inputs.ttt_steps.value = Math.floor(Math.random() * 25) + 5;
+            inputs.ttt_ms.value = Math.floor(Math.random() * TTT_VALUES_MS.length);
             logAudit(`Randomized parameters and loaded profile: ${scenarios[randomKey].name}`, 'INFO');
             runSimulation();
         });
@@ -607,7 +613,7 @@
             scenarioSelect.value = 'urban';
             inputs.a3_offset.value = 3;
             inputs.hysteresis.value = 1.0;
-            inputs.ttt_steps.value = 10;
+            inputs.ttt_ms.value = 5; // corresponds to 128 ms
             inputs.rlf_threshold.value = -108;
             logAudit('Reset simulation parameters back to standard baseline defaults.', 'INFO');
             runSimulation();
@@ -630,7 +636,7 @@
         });
 
         window.addEventListener('DOMContentLoaded', () => {
-            logAudit('A3Sim Universal Mobility Engine v3.5-PRO initialized successfully.', 'SUCCESS');
+            logAudit('A3Sim Universal Mobility Engine v3.6-PRO initialized successfully.', 'SUCCESS');
             runSimulation();
         });
     </script>
