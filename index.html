@@ -58,7 +58,7 @@
                 <div>
                     <div class="flex items-center space-x-2">
                         <h1 class="text-sm font-bold tracking-wider text-slate-100 uppercase">A3Sim // Universal 3GPP Mobility Engine</h1>
-                        <span class="px-1.5 py-0.5 text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded">v3.6-PRO</span>
+                        <span class="px-1.5 py-0.5 text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800/60 rounded">v3.7-PRO</span>
                     </div>
                     <p class="text-[11px] text-slate-400 font-mono">Universal 3GPP LTE / 5G NR Handover & Retainability Simulator (Vendor-Agnostic)</p>
                 </div>
@@ -234,7 +234,7 @@
                         <span id="summary_distance" class="font-mono text-slate-200">-</span>
                     </div>
                     <div class="flex justify-between py-1">
-                        <span class="text-slate-400">Neighbor RSRP at HO</span>
+                        <span class="text-slate-400">A3 Threshold at HO</span>
                         <span id="summary_rsrp" class="font-mono text-slate-200">-</span>
                     </div>
                 </div>
@@ -360,7 +360,7 @@
         const trajectorySubtitle = document.getElementById('trajectory_subtitle');
 
         let lastSimulationData = null;
-        let currentMaxDistance = 500; // Track active random total distance
+        let currentMaxDistance = 500;
 
         function logAudit(message, type = 'INFO') {
             const timestamp = new Date().toISOString().split('T')[1].slice(0, 8);
@@ -372,7 +372,6 @@
             auditConsole.scrollTop = auditConsole.scrollHeight;
         }
 
-        // Initialize Chart.js with gradient fills
         const ctx = document.getElementById('rnoChart').getContext('2d');
         
         const servingGradient = ctx.createLinearGradient(0, 0, 0, 350);
@@ -425,10 +424,10 @@
                         data: []
                     },
                     {
-                        label: 'Event Marker',
+                        label: 'Event Trigger Marker',
                         borderColor: '#10b981',
                         backgroundColor: '#10b981',
-                        pointRadius: 6,
+                        pointRadius: 7,
                         pointStyle: 'circle',
                         showLine: false,
                         data: []
@@ -486,14 +485,12 @@
             const profile = scenarios[currentScenarioKey] || scenarios.urban_macro;
             scenarioDesc.textContent = profile.desc;
 
-            // Randomize distance bounds per profile if requested or first load
             if (forceNewDistance || !currentMaxDistance) {
                 const [minD, maxD] = profile.minMaxDist;
                 currentMaxDistance = Math.floor(Math.random() * (maxD - minD + 1)) + minD;
             }
             trajectorySubtitle.textContent = `Simulated UE trajectory across ${currentMaxDistance} meters (${profile.name}) with multipath fading.`;
 
-            // Map TTT ms to required persistence points based on step resolution
             const points = 250;
             const stepSize = currentMaxDistance / (points - 1);
             const pointTimeStepMs = 40; 
@@ -523,7 +520,8 @@
 
                 serving_rsrp.push(serv);
                 neighbor_rsrp.push(neigh);
-                a3_threshold_arr.push(serv + a3_offset + hysteresis);
+                const a3Thresh = serv + a3_offset + hysteresis;
+                a3_threshold_arr.push(a3Thresh);
                 rlf_arr.push(rlf_threshold);
 
                 if (!dropped && serv < rlf_threshold) {
@@ -570,7 +568,7 @@
                 summary.outcome.textContent = "Radio Link Failure (Drop)";
                 summary.outcome.className = "font-mono font-medium text-rose-400";
                 summary.distance.textContent = `${distance[drop_index]} meters`;
-                summary.rsrp.textContent = `${serving_rsrp[drop_index].toFixed(1)} dBm`;
+                summary.rsrp.textContent = `${serving_rsrp[drop_index].toFixed(1)} dBm (Serving)`;
                 marker_arr[drop_index] = serving_rsrp[drop_index];
             } else if (trigger_index !== null) {
                 statusBadge.className = "px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 bg-emerald-950/80 border-emerald-800 text-emerald-300";
@@ -579,8 +577,9 @@
                 summary.outcome.textContent = "Event A3 Handover Triggered";
                 summary.outcome.className = "font-mono font-medium text-emerald-400";
                 summary.distance.textContent = `${distance[trigger_index]} meters`;
-                summary.rsrp.textContent = `${neighbor_rsrp[trigger_index].toFixed(1)} dBm`;
-                marker_arr[trigger_index] = neighbor_rsrp[trigger_index];
+                summary.rsrp.textContent = `${a3_threshold_arr[trigger_index].toFixed(1)} dBm (A3 Thresh)`;
+                // Lock marker precisely onto the A3 Threshold intersection point
+                marker_arr[trigger_index] = a3_threshold_arr[trigger_index];
             } else {
                 statusBadge.className = "px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 bg-amber-950/80 border-amber-800 text-amber-300";
                 statusDot.className = "w-2 h-2 rounded-full animate-pulse bg-amber-500";
@@ -606,7 +605,7 @@
 
         scenarioSelect.addEventListener('change', () => {
             logAudit(`Loaded scenario profile: ${scenarioSelect.value.toUpperCase()}`, 'INFO');
-            runSimulation(true); // Generate new random distance range for the new scenario
+            runSimulation(true);
         });
 
         randomizeBtn.addEventListener('click', () => {
@@ -614,7 +613,6 @@
             const randomKey = keys[Math.floor(Math.random() * keys.length)];
             scenarioSelect.value = randomKey;
             
-            // Randomize radio parameters slightly
             inputs.a3_offset.value = (Math.floor(Math.random() * 8) - 1).toString();
             inputs.hysteresis.value = (Math.floor(Math.random() * 5) * 0.5).toString();
             inputs.ttt_ms.value = Math.floor(Math.random() * 12).toString();
@@ -642,15 +640,14 @@
             scenarioSelect.value = 'urban_macro';
             inputs.a3_offset.value = 3;
             inputs.hysteresis.value = 1.0;
-            inputs.ttt_ms.value = 5; // 128ms
+            inputs.ttt_ms.value = 5;
             inputs.rlf_threshold.value = -108;
             logAudit('Reset simulation parameters to factory defaults.', 'INFO');
             runSimulation(true);
         });
 
-        // Initial Boot
         window.addEventListener('DOMContentLoaded', () => {
-            logAudit('A3Sim Engine v3.6-PRO successfully initialized.', 'SUCCESS');
+            logAudit('A3Sim Engine v3.7-PRO successfully initialized.', 'SUCCESS');
             logAudit('Loading standard 3GPP TS 36/38 macro and micro propagation profiles...', 'INFO');
             runSimulation(true);
         });
