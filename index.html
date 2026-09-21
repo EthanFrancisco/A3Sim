@@ -555,32 +555,29 @@
             if (dropped) {
                 statusBadge.className = "px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 bg-rose-950/80 border-rose-800 text-rose-300";
                 statusDot.className = "w-2 h-2 rounded-full animate-pulse bg-rose-500";
-                statusText.textContent = "RADIO LINK FAILURE (RLF)";
-                summary.outcome.textContent = "CALL FAILED (RLF)";
-                summary.outcome.className = "font-mono font-semibold text-rose-400";
-                summary.distance.textContent = `${distance[drop_index]}m`;
-                summary.rsrp.textContent = `${neighbor_rsrp[drop_index].toFixed(1)} dBm`;
+                statusText.textContent = "RLF CRITICAL (DROP)";
+                summary.outcome.textContent = "Radio Link Failure (Drop)";
+                summary.outcome.className = "font-mono font-medium text-rose-400";
+                summary.distance.textContent = `${distance[drop_index]} meters`;
+                summary.rsrp.textContent = `${serving_rsrp[drop_index].toFixed(1)} dBm`;
                 marker_arr[drop_index] = serving_rsrp[drop_index];
-                logAudit(`Radio Link Failure triggered at distance ${distance[drop_index]}m. Serving RSRP dropped below ${rlf_threshold} dBm threshold.`, 'ERROR');
             } else if (trigger_index !== null) {
                 statusBadge.className = "px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 bg-emerald-950/80 border-emerald-800 text-emerald-300";
                 statusDot.className = "w-2 h-2 rounded-full animate-pulse bg-emerald-500";
-                statusText.textContent = "HANDOVER SUCCESSFUL";
-                summary.outcome.textContent = "HANDOVER EXECUTED";
-                summary.outcome.className = "font-mono font-semibold text-emerald-400";
-                summary.distance.textContent = `${distance[trigger_index]}m`;
+                statusText.textContent = "HANDOVER SUCCESS";
+                summary.outcome.textContent = "Event A3 Handover Triggered";
+                summary.outcome.className = "font-mono font-medium text-emerald-400";
+                summary.distance.textContent = `${distance[trigger_index]} meters`;
                 summary.rsrp.textContent = `${neighbor_rsrp[trigger_index].toFixed(1)} dBm`;
                 marker_arr[trigger_index] = neighbor_rsrp[trigger_index];
-                logAudit(`A3 Handover successfully triggered and executed at ${distance[trigger_index]}m (TTT: ${tttValueMs}ms, Neighbor RSRP: ${neighbor_rsrp[trigger_index].toFixed(1)} dBm).`, 'SUCCESS');
             } else {
                 statusBadge.className = "px-3 py-1 rounded text-xs font-mono font-medium border flex items-center space-x-2 bg-amber-950/80 border-amber-800 text-amber-300";
                 statusDot.className = "w-2 h-2 rounded-full animate-pulse bg-amber-500";
-                statusText.textContent = "PENDING / NO TRIGGER";
-                summary.outcome.textContent = "TTT NOT SATISFIED";
-                summary.outcome.className = "font-mono font-semibold text-amber-400";
-                summary.distance.textContent = "N/A";
+                statusText.textContent = "HO WINDOW EXPIRED";
+                summary.outcome.textContent = "Late HO / Out of Sync";
+                summary.outcome.className = "font-mono font-medium text-amber-400";
+                summary.distance.textContent = "> 100.0 meters";
                 summary.rsrp.textContent = "N/A";
-                logAudit(`Handover criteria not fully met across trajectory with TTT ${tttValueMs}ms for profile [${profile.name}].`, 'WARN');
             }
 
             chart.data.labels = distance;
@@ -592,9 +589,12 @@
             chart.update();
         }
 
-        Object.values(inputs).forEach(input => input.addEventListener('input', runSimulation));
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('input', runSimulation);
+        });
+
         scenarioSelect.addEventListener('change', () => {
-            logAudit(`Switched active environment profile to: ${scenarios[scenarioSelect.value].name}`, 'INFO');
+            logAudit(`Loaded scenario profile: ${scenarioSelect.value.toUpperCase()}`, 'INFO');
             runSimulation();
         });
 
@@ -602,41 +602,45 @@
             const keys = Object.keys(scenarios);
             const randomKey = keys[Math.floor(Math.random() * keys.length)];
             scenarioSelect.value = randomKey;
-            inputs.a3_offset.value = (Math.random() * 8 - 4).toFixed(0);
-            inputs.hysteresis.value = (Math.random() * 3).toFixed(1);
-            inputs.ttt_ms.value = Math.floor(Math.random() * TTT_VALUES_MS.length);
-            logAudit(`Randomized parameters and loaded profile: ${scenarios[randomKey].name}`, 'INFO');
+            
+            // Randomize parameters slightly
+            inputs.a3_offset.value = (Math.floor(Math.random() * 8) - 1).toString();
+            inputs.hysteresis.value = (Math.floor(Math.random() * 5) * 0.5).toString();
+            inputs.ttt_ms.value = Math.floor(Math.random() * 12).toString();
+            
+            logAudit(`Randomized environment to profile '${randomKey}' with dynamic parameters.`, 'WARN');
             runSimulation();
+        });
+
+        exportBtn.addEventListener('click', () => {
+            if (!lastSimulationData) return;
+            let csv = 'Distance(m),ServingRSRP(dBm),NeighborRSRP(dBm)\n';
+            for (let i = 0; i < lastSimulationData.distance.length; i++) {
+                csv += `${lastSimulationData.distance[i]},${lastSimulationData.serving_rsrp[i].toFixed(2)},${lastSimulationData.neighbor_rsrp[i].toFixed(2)}\n`;
+            }
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `A3Sim_Trajectory_${scenarioSelect.value}_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            logAudit('Exported trajectory telemetry data to CSV format.', 'SUCCESS');
         });
 
         resetBtn.addEventListener('click', () => {
             scenarioSelect.value = 'urban';
             inputs.a3_offset.value = 3;
             inputs.hysteresis.value = 1.0;
-            inputs.ttt_ms.value = 5; // corresponds to 128 ms
+            inputs.ttt_ms.value = 5; // 128ms
             inputs.rlf_threshold.value = -108;
-            logAudit('Reset simulation parameters back to standard baseline defaults.', 'INFO');
+            logAudit('Reset simulation parameters to factory defaults.', 'INFO');
             runSimulation();
         });
 
-        exportBtn.addEventListener('click', () => {
-            if (!lastSimulationData) return;
-            let csvContent = "data:text/csv;charset=utf-8,Distance_m,Serving_RSRP_dBm,Neighbor_RSRP_dBm\n";
-            for (let i = 0; i < lastSimulationData.distance.length; i++) {
-                csvContent += `${lastSimulationData.distance[i]},${lastSimulationData.serving_rsrp[i].toFixed(2)},${lastSimulationData.neighbor_rsrp[i].toFixed(2)}\n`;
-            }
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `A3Sim_Trajectory_Export_${scenarioSelect.value}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            logAudit('Successfully exported trajectory dataset to CSV format.', 'SUCCESS');
-        });
-
+        // Initial Boot
         window.addEventListener('DOMContentLoaded', () => {
-            logAudit('A3Sim Universal Mobility Engine v3.6-PRO initialized successfully.', 'SUCCESS');
+            logAudit('A3Sim Engine v3.6-PRO successfully initialized.', 'SUCCESS');
+            logAudit('Loading standard 3GPP TS 36/38 propagation profiles...', 'INFO');
             runSimulation();
         });
     </script>
