@@ -1,7 +1,7 @@
 # A3Sim // Universal 3GPP LTE / 5G NR Mobility & Retainability Suite
 
 [![3GPP Compliant](https://img.shields.io/badge/3GPP-TS%2036%2F38-blue.svg)](https://www.3gpp.org/)
-[![Live Demo](https://img.shields.io/badge/Live-Demo-cyan.svg)](https://your-username.github.io/a3-mobility-simulator/)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-cyan.svg)](https://ethanfrancisco.github.io/A3Sim/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/Version-v3.7--PRO-cyan.svg)]()
 
